@@ -1,56 +1,45 @@
-#ifndef _TETRIS_H_
-#define _TETRIS_H_
+#pragma once
 
 #include <stdbool.h>
-#include <stdio.h>
+#include "Block.h"
+#include "Control.h"
+#include "Utility.h"
 
-#define BLOCK_TILE_NUMBER 4
-#define BLOCK_SHAPE_ROW 3
-#define BLOCK_SHAPE_COL 3
 #define MAP_ROW 10
 #define MAP_COL 7
+#define MAP_SIZE (sizeof(BlockTile) * MAP_ROW * MAP_COL)
+#define BLOCK_BAG_NUMBER 4
+#define BLOCK_BAG_SIZE (sizeof(BlockTile) * BLOCK_BAG_NUMBER)
+#define LOCK_DELAY 1000
 
-typedef enum BlockDirection_e
+typedef struct GameTimer_t
 {
-	Up, Right, Down, Left
-} BlockDirection;
+	TickTimer Gravity;
+	TickTimer Lock;
 
-typedef enum BlockTile_e
-{
-	Empty = 0, I, J, S, T
-} BlockTile;
-
-//typedef enum Key_t
-//{
-//	None, Up, Down, Left, Right, Drop, RotateLeft, RotateRight
-//};
-
-typedef struct Point_t
-{
-	int x;
-	int y;
-} Point;
-
-typedef struct Block_t
-{
-	BlockDirection direction;
-	BlockTile tile;
-	Point point;
-} Block;
+} GameTimer;
 
 void InitializeTetris();
+void UpdateTetris();
+
+bool IsOutOfMap(Block* block, Point targetPosition);
+bool IsCollide(Block* block, Point targetPosition);
+
+void ClearMap();
+void RenderToBoolMap(bool renderedMap[][MAP_COL]);
+void SetGhostBlockVisibility(bool showGhostBlock);
+
+void GenerateBlockBag();
+void ClearBlockBag();
+bool IsBlockBagEmpty();
+Block PrepareNextBlock();
 
 void SpawnNextBlock();
-void GenerateBlockBag();
-BlockTile GetNextBlockTile();
-void GetBlockShape(BlockDirection blockDirection, BlockTile blockTile, unsigned char shape[][BLOCK_SHAPE_COL]);
+void SpawnGarbage();
 
-void MoveBlock(BlockDirection direction);
-void RotateBlock(BlockDirection direction);
-bool CheckCollision(Block* block, Point point);
-bool CheckOutOfMap(Block* block, Point point);
+void MoveBlock(MoveDirection direction);
+void RotateBlock(RotateDirection direction);
+void DropDownBlock();
+Point GetDropDownPosition(Block* block);
 
-void DrawMap();
-void GetMap(BlockTile map[][MAP_COL]);
-
-#endif
+void HandleUserInput(UserInput input);
