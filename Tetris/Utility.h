@@ -18,4 +18,5 @@ typedef struct TickTimer_t
 
 void InitializeTickTimer(TickTimer* timer, unsigned int delay);
 void WaitNextTick(TickTimer* timer);
+void RestartTimer(TickTimer* timer);
 bool IsReady(TickTimer* timer);

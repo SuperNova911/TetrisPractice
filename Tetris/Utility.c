@@ -31,6 +31,11 @@ void WaitNextTick(TickTimer* timer)
 	}
 }
 
+void RestartTimer(TickTimer* timer)
+{
+	timer->LastTick = GetTickCount64();
+}
+
 bool IsReady(TickTimer* timer)
 {
 	static long CurrentTick;
