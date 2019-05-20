@@ -124,19 +124,28 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Block.c" />
+    <ClCompile Include="BlockBag.c" />
     <ClCompile Include="driverManager.c" />
     <ClCompile Include="Game.c" />
+    <ClCompile Include="Map.c" />
     <ClCompile Include="Tetris.c" />
     <ClCompile Include="test.c" />
-    <ClCompile Include="Utility.c" />
+    <ClCompile Include="TickTimer.c" />
+    <ClCompile Include="Point.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Block.h" />
+    <ClInclude Include="BlockBag.h" />
     <ClInclude Include="Control.h" />
     <ClInclude Include="dot_matrix_font.h" />
     <ClInclude Include="driverManager.h" />
+    <ClInclude Include="Map.h" />
     <ClInclude Include="Tetris.h" />
-    <ClInclude Include="Utility.h" />
+    <ClInclude Include="TickTimer.h" />
+    <ClInclude Include="Point.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

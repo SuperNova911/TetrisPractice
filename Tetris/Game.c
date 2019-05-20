@@ -6,24 +6,27 @@
 #include <Windows.h>
 #include "driverManager.h"
 #include "Tetris.h"
-#include "Utility.h"
+#include "TickTimer.h"
+#include "Point.h"
 
 void UpdateDevice();
 unsigned _stdcall Thread_Device(void* arg);
 
 int main()
 {
-	OpenDriver_kappa();
-	InitializeTetris();
-
 	TickTimer timer;
+	TetrisGame tetris;
+
+	OpenDriver_kappa();
+
+	InitializeTetris(&tetris);
 	InitializeTickTimer(&timer, 10);
 
 	//_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
 	while (true)
 	{
 		WaitNextTick(&timer);
-		UpdateTetris();
+		UpdateTetris(&tetris);
 	}
 
 	CloseDriver_kappa();

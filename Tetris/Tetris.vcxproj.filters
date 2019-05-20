@@ -24,13 +24,22 @@
     <ClCompile Include="Block.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Utility.c">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="Game.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Tetris.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="TickTimer.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Point.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Map.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="BlockBag.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -44,14 +53,26 @@
     <ClInclude Include="Block.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Utility.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="Control.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Tetris.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="TickTimer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Point.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Map.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="BlockBag.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>
