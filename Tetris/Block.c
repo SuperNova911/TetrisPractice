@@ -28,6 +28,17 @@ bool Block_Shape_T[BLOCK_SHAPE_ROW][BLOCK_SHAPE_COL] =
 	{ 0, 0, 0 },
 };
 
+void InitializeBlock(Block* block)
+{
+	block->Tile = BlockTile_I;
+	block->Direction = BlockDirection_Up;
+	block->Position.x = 0;
+	block->Position.y = 0;
+	GetBlockShape(block->Tile, block->Shape);
+
+	block->IsValid = false;
+}
+
 void BuildBlock(Block* block, BlockTile tile, BlockDirection direction, Point position)
 {
 	block->Tile = tile;
@@ -38,15 +49,11 @@ void BuildBlock(Block* block, BlockTile tile, BlockDirection direction, Point po
 	block->IsValid = false;
 }
 
-void ResetBlock(Block* block)
+void ChangeBlockTile(Block* block, BlockTile newTile)
 {
-	block->Tile = BlockTile_I;
+	block->Tile = newTile;
 	block->Direction = BlockDirection_Up;
-	block->Position.x = 0;
-	block->Position.y = 0;
 	GetBlockShape(block->Tile, block->Shape);
-
-	block->IsValid = false;
 }
 
 void RotateBlockShape(Block* block, RotateDirection direction)

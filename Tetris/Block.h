@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
-#include "Utility.h"
+#include "Point.h"
 
 #define BLOCK_TILE_NUMBER 4
 #define BLOCK_DIRECTION_NUMBER 4
@@ -40,7 +40,8 @@ typedef struct Block_t
 	bool IsValid;
 } Block;
 
+void InitializeBlock(Block* block);
 void BuildBlock(Block* block, BlockTile tile, BlockDirection direction, Point position);
-void ResetBlock(Block* block);
+void ChangeBlockTile(Block* block, BlockTile newTile);
 void RotateBlockShape(Block* block, RotateDirection direction);
 void GetBlockShape(BlockTile tile, bool shape[][BLOCK_SHAPE_COL]);
