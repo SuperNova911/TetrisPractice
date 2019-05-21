@@ -50,13 +50,6 @@ bool IsOutOfMap(TetrisMap* map, Block* block, Point targetPosition)
 {
 	int row, col;
 
-	// Quick Check
-	if (block->Position.y < 0 || block->Position.y + BLOCK_SHAPE_ROW > MAP_ROW ||
-		block->Position.x < 0 || block->Position.x + BLOCK_SHAPE_COL > MAP_COL)
-	{
-		return true;
-	}
-
 	for (row = 0; row < BLOCK_SHAPE_ROW; row++)
 	{
 		for (col = 0; col < BLOCK_SHAPE_COL; col++)
@@ -66,8 +59,8 @@ bool IsOutOfMap(TetrisMap* map, Block* block, Point targetPosition)
 				continue;
 			}
 
-			if (block->Position.y + row < 0 || block->Position.y + row > MAP_ROW ||
-				block->Position.x + col < 0 || block->Position.x + col > MAP_COL)
+			if (targetPosition.y + row < 0 || targetPosition.y + row > MAP_ROW - 1 ||
+				targetPosition.x + col < 0 || targetPosition.x + col > MAP_COL - 1)
 			{
 				return true;
 			}
@@ -172,8 +165,7 @@ bool ShiftLine(TetrisMap* map, int originRow, int targetRow)
 int ClearFullLine(TetrisMap* map)
 {
 	int clearedLine = 0;
-	int row, col;
-	int emptyRow, targetRow;
+	int row, emptyRow, targetRow;
 	bool emptyLineChecker[MAP_ROW];
 
 	memset(emptyLineChecker, false, sizeof(bool) * MAP_ROW);
@@ -199,8 +191,8 @@ int ClearFullLine(TetrisMap* map)
 			if (row < targetRow)
 			{
 				ShiftLine(map, row, targetRow);
-				emptyLineChecker[row] == true;
-				emptyLineChecker[targetRow] == false;
+				emptyLineChecker[row] = true;
+				emptyLineChecker[targetRow] = false;
 			}
 		}
 	}
@@ -210,8 +202,6 @@ int ClearFullLine(TetrisMap* map)
 
 bool SpawnBlock(TetrisMap* map, Block block)
 {
-	int row, col;
-
 	if (map->CurrentBlock.IsValid == true)
 	{
 		printf("SpawnBlock: Map already has valid Block, Block: (Tile: '%d', Position: (x: '%d', y: '%d'))\n", 
