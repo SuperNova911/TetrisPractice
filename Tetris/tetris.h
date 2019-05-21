@@ -9,31 +9,32 @@
 
 typedef struct TetrisCore_t
 {
-	unsigned int Stage;
-	unsigned int Score;
-	unsigned int Gravity;
-	unsigned int LockDelay;
-
 	TickTimer GravityTimer;
 	TickTimer LockTimer;
 } TetrisCore;
 
 typedef struct TetrisInfo_t
 {
+	unsigned int Stage;
 	unsigned int Score;
+	unsigned int Gravity;
+	unsigned int LockDelay;
 	bool IsRunning;
 } TetrisInfo;
 
 typedef struct TetrisGame_t
 {
 	TetrisMap GameMap;
+	TetrisCore GameCore;
 	TetrisInfo GameInfo;
 	TetrisBlockBag BlockBag;
+	InputInfo UserInput;
 } TetrisGame;
 
 void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
-
-void HandleUserInput(TetrisGame* tetris, UserInput input);
+void Gravity(tetris);
+void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection);
+void HandleUserInput(TetrisGame* tetris);

@@ -11,63 +11,105 @@
 void InitializeTetris(TetrisGame* tetris)
 {
 	InitializeMap(&tetris->GameMap);
+	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1500);
+	InitializeTickTimer(&tetris->GameCore.LockTimer, 1000);
 	InitializeBlockBag(&tetris->BlockBag);
 }
 
 void RunTetris(TetrisGame* tetris)
 {
+	if (tetris->GameInfo.IsRunning == true)
+	{
+		printf("RunTetris: Game is already running\n");
+		return;
+	}
+
+	tetris->GameInfo.IsRunning = true;
 }
 
 void UpdateTetris(TetrisGame* tetris)
 {
-	// Move, Rotate
+	Block newBlock;
 
-	Gravity();
+	if (tetris->GameMap.CurrentBlock.IsValid == false)
+	{
+		newBlock = GetNextBlock(&tetris->BlockBag);
+		SpawnBlock(&tetris->GameMap, newBlock);
+	}
 
-	ClearLine();
+	HandleUserInput(tetris);
+
+	//Gravity(tetris);
+
+	ClearFullLine(&tetris->GameMap);
 }
 
-void Gravity()
+void Gravity(TetrisGame* tetris)
 {
-	if (CurrentBlock.IsValid == false)
+	if (tetris->GameMap.CurrentBlock.IsValid == false)
 	{
 		return;
 	}
 
-	if (IsReady(&Core.GravityTimer) == true)
+	if (IsReady(&tetris->GameCore.GravityTimer) == true)
 	{
-		MoveBlock(Move_Down);
+		MoveBlock(&tetris->GameMap, Move_Down);
 	}
-
-
 }
 
-void HandleUserInput(TetrisGame* tetris, UserInput input)
+void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
 {
-	switch (input)
+	int index;
+
+	for (index = 0; index < INPUT_SOURCE_NUMBER; index++)
+	{
+		if (InputCollection->Input[index].Type == InputType_Click)
+		{
+			tetris->UserInput = InputCollection->Input[index];
+			break;
+		}
+	}
+}
+
+void HandleUserInput(TetrisGame* tetris)
+{
+	bool actionResult;
+
+	if (tetris->UserInput.Type == InputType_None)
+	{
+		return;
+	}
+
+	switch (tetris->UserInput.Command)
 	{
 	case Input_MoveUp:
-		MoveBlock(Move_Up);
+		MoveBlock(&tetris->GameMap, Move_Up);
 		break;
 	case Input_MoveRight:
-		MoveBlock(Move_Right);
+		MoveBlock(&tetris->GameMap, Move_Right);
 		break;
 	case Input_MoveDown:
-		MoveBlock(Move_Down);
+		actionResult = MoveBlock(&tetris->GameMap, Move_Down);
+		if (actionResult == true)
+		{
+			RestartTimer(&tetris->GameCore.GravityTimer);
+		}
 		break;
 	case Input_MoveLeft:
-		MoveBlock(Move_Left);
+		MoveBlock(&tetris->GameMap, Move_Left);
 		break;
 	case Input_RotateRight:
-		RotateBlock(Rotate_Right);
+		RotateBlock(&tetris->GameMap, Rotate_Right);
 		break;
 	case Input_RotateLeft:
-		RotateBlock(Rotate_Left);
+		RotateBlock(&tetris->GameMap, Rotate_Left);
 		break;
 	case Input_DropDown:
-		DropDownBlock();
+		DropDownBlock(&tetris->GameMap);
 		break;
 	default:
 		break;
 	}
+
+	tetris->UserInput.Type = InputType_None;
 }
