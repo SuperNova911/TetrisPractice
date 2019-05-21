@@ -28,7 +28,7 @@ void GenerateBlockBag(TetrisBlockBag* bag)
 		}
 
 		existChecker[randomTile - 1] = true;
-		AddBlockToBag(bag, randomTile);
+		AddBlockTileToBag(bag, randomTile);
 
 		if (IsBlockBagFull(bag) == true)
 		{
