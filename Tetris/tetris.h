@@ -11,6 +11,7 @@ typedef struct TetrisCore_t
 {
 	TickTimer GravityTimer;
 	TickTimer LockTimer;
+	bool WaitForLock;
 } TetrisCore;
 
 typedef struct TetrisInfo_t
@@ -35,6 +36,11 @@ void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
-void Gravity(tetris);
+void Gravity(TetrisGame* tetris);
+void Lock(TetrisGame* tetris);
+
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection);
 void HandleUserInput(TetrisGame* tetris);
+
+void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
+void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);

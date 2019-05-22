@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,8 +12,8 @@
 void InitializeTetris(TetrisGame* tetris)
 {
 	InitializeMap(&tetris->GameMap);
-	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1500);
-	InitializeTickTimer(&tetris->GameCore.LockTimer, 1000);
+	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1000);
+	InitializeTickTimer(&tetris->GameCore.LockTimer, 1500);
 	InitializeBlockBag(&tetris->BlockBag);
 }
 
@@ -39,9 +40,14 @@ void UpdateTetris(TetrisGame* tetris)
 
 	HandleUserInput(tetris);
 
-	//Gravity(tetris);
-
-	ClearFullLine(&tetris->GameMap);
+	if (tetris->GameCore.WaitForLock == true)
+	{
+		Lock(tetris);
+	}
+	else
+	{
+		Gravity(tetris);
+	}
 }
 
 void Gravity(TetrisGame* tetris)
@@ -54,6 +60,22 @@ void Gravity(TetrisGame* tetris)
 	if (IsReady(&tetris->GameCore.GravityTimer) == true)
 	{
 		MoveBlock(&tetris->GameMap, Move_Down);
+	}
+}
+
+void Lock(TetrisGame* tetris)
+{
+	if (tetris->GameMap.CurrentBlock.IsValid == false)
+	{
+		return;
+	}
+
+	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true &&
+		IsReady(&tetris->GameCore.LockTimer) == true)
+	{
+		AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
+		tetris->GameMap.CurrentBlock.IsValid = false;
+		ClearFullLine(&tetris->GameMap);
 	}
 }
 
@@ -73,8 +95,6 @@ void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
 
 void HandleUserInput(TetrisGame* tetris)
 {
-	bool actionResult;
-
 	if (tetris->UserInput.Type == InputType_None)
 	{
 		return;
@@ -83,33 +103,83 @@ void HandleUserInput(TetrisGame* tetris)
 	switch (tetris->UserInput.Command)
 	{
 	case Input_MoveUp:
-		MoveBlock(&tetris->GameMap, Move_Up);
+		ControlBlockMovement(tetris, Move_Up);
 		break;
 	case Input_MoveRight:
-		MoveBlock(&tetris->GameMap, Move_Right);
+		ControlBlockMovement(tetris, Move_Right);
 		break;
 	case Input_MoveDown:
-		actionResult = MoveBlock(&tetris->GameMap, Move_Down);
-		if (actionResult == true)
-		{
-			RestartTimer(&tetris->GameCore.GravityTimer);
-		}
+		ControlBlockMovement(tetris, Move_Down);
 		break;
 	case Input_MoveLeft:
-		MoveBlock(&tetris->GameMap, Move_Left);
+		ControlBlockMovement(tetris, Move_Left);
 		break;
 	case Input_RotateRight:
-		RotateBlock(&tetris->GameMap, Rotate_Right);
+		ControlBlockRotation(tetris, Rotate_Right);
 		break;
 	case Input_RotateLeft:
-		RotateBlock(&tetris->GameMap, Rotate_Left);
+		ControlBlockRotation(tetris, Rotate_Left);
 		break;
 	case Input_DropDown:
 		DropDownBlock(&tetris->GameMap);
+		if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
+		{
+			if (tetris->GameCore.WaitForLock == false)
+			{
+				RestartTimer(&tetris->GameCore.LockTimer);
+				tetris->GameCore.WaitForLock = true;
+			}
+		}
+		else
+		{
+			tetris->GameCore.WaitForLock = false;
+		}
 		break;
 	default:
 		break;
 	}
 
 	tetris->UserInput.Type = InputType_None;
+}
+
+void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction)
+{
+	bool controlResult;
+	controlResult = MoveBlock(&tetris->GameMap, direction);
+
+	if (controlResult == true && direction == Move_Down)
+	{
+		RestartTimer(&tetris->GameCore.GravityTimer);
+	}
+
+	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
+	{
+		if (tetris->GameCore.WaitForLock == false)
+		{
+			RestartTimer(&tetris->GameCore.LockTimer);
+			tetris->GameCore.WaitForLock = true;
+		}
+	}
+	else
+	{
+		tetris->GameCore.WaitForLock = false;
+	}
+}
+
+void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction)
+{
+	RotateBlock(&tetris->GameMap, direction);
+
+	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
+	{
+		if (tetris->GameCore.WaitForLock == false)
+		{
+			RestartTimer(&tetris->GameCore.LockTimer);
+			tetris->GameCore.WaitForLock = true;
+		}
+	}
+	else
+	{
+		tetris->GameCore.WaitForLock = false;
+	}
 }
