@@ -12,9 +12,17 @@
 void InitializeTetris(TetrisGame* tetris)
 {
 	InitializeMap(&tetris->GameMap);
+
 	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1000);
 	InitializeTickTimer(&tetris->GameCore.LockTimer, 1500);
+	tetris->GameCore.WaitForLock = false;
+
+	tetris->GameInfo.IsRunning = false;
+
 	InitializeBlockBag(&tetris->BlockBag);
+
+	tetris->UserInput.Command = 0;
+	tetris->UserInput.Type = InputType_None;
 }
 
 void RunTetris(TetrisGame* tetris)
