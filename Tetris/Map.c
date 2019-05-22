@@ -25,7 +25,13 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
 {
 	int row, col;
 
-	memcpy(renderedMap, map->Map, MAP_SIZE);
+	for (row = 0; row < MAP_ROW; row++)
+	{
+		for (col = 0; col < MAP_COL; col++)
+		{
+			renderedMap[row][col] = map->Map[row][col];
+		}
+	}
 
 	if (map->CurrentBlock.IsValid == false)
 	{
@@ -36,7 +42,10 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
 	{
 		for (col = 0; col < BLOCK_SHAPE_COL; col++)
 		{
-			renderedMap[row + map->CurrentBlock.Position.y][col + map->CurrentBlock.Position.x] = map->CurrentBlock.Shape[row][col];
+			if (map->CurrentBlock.Shape[row][col] != BlockTile_Empty)
+			{
+				renderedMap[row + map->CurrentBlock.Position.y][col + map->CurrentBlock.Position.x] = map->CurrentBlock.Shape[row][col];
+			}
 		}
 	}
 }
@@ -46,9 +55,15 @@ void RenderGhostBlock(TetrisMap* map, bool renderGhostBlock)
 	map->RenderGhostBlock = renderGhostBlock;
 }
 
-bool IsOutOfMap(TetrisMap* map, Block* block, Point targetPosition)
+bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition)
 {
 	int row, col;
+
+	if (targetPosition->y >= 0 && targetPosition->y + BLOCK_SHAPE_ROW <= MAP_ROW &&
+		targetPosition->x >= 0 && targetPosition->x + BLOCK_SHAPE_COL <= MAP_COL)
+	{
+		return false;
+	}
 
 	for (row = 0; row < BLOCK_SHAPE_ROW; row++)
 	{
@@ -59,8 +74,8 @@ bool IsOutOfMap(TetrisMap* map, Block* block, Point targetPosition)
 				continue;
 			}
 
-			if (targetPosition.y + row < 0 || targetPosition.y + row > MAP_ROW - 1 ||
-				targetPosition.x + col < 0 || targetPosition.x + col > MAP_COL - 1)
+			if (targetPosition->y + row < 0 || targetPosition->y + row > MAP_ROW - 1 ||
+				targetPosition->x + col < 0 || targetPosition->x + col > MAP_COL - 1)
 			{
 				return true;
 			}
@@ -70,7 +85,7 @@ bool IsOutOfMap(TetrisMap* map, Block* block, Point targetPosition)
 	return false;
 }
 
-bool IsCollide(TetrisMap* map, Block* block, Point targetPosition)
+bool IsCollide(TetrisMap* map, Block* block, Point* targetPosition)
 {
 	int row, col;
 
@@ -88,11 +103,55 @@ bool IsCollide(TetrisMap* map, Block* block, Point targetPosition)
 				continue;
 			}
 
-			// IsOutOfMap() ¿¡¼­ Map ¹üÀ§¸¦ ¹þ¾î³ª´ÂÁö °Ë»çÇÏ¹Ç·Î µû·Î ¹üÀ§°Ë»ç ¾È ÇÔ
-			if (map->Map[block->Position.y + row][block->Position.x + col] != BlockTile_Empty)
+			// IsOutOfMap() ì—ì„œ Map ë²”ìœ„ë¥¼ ë²—ì–´ë‚˜ëŠ”ì§€ ê²€ì‚¬í•˜ë¯€ë¡œ ë”°ë¡œ ë²”ìœ„ê²€ì‚¬ ì•ˆ í•¨
+			if (map->Map[targetPosition->y + row][targetPosition->x + col] != BlockTile_Empty)
 			{
 				return true;
 			}
+		}
+	}
+
+	return false;
+}
+
+bool IsLockAhead(TetrisMap* map, Block* block, Point* targetPosition)
+{
+	int row, col;
+	int nextRow, nextCol;
+	int lowestRow[BLOCK_SHAPE_COL];
+
+	if (IsOutOfMap(map, block, targetPosition) == true)
+	{
+		printf("IsLockAhead: Block is out of map, targetPosition: (x: '%d', y: '%d')\n",
+			targetPosition->x, targetPosition->y);
+		return false;
+	}
+
+	for (col = 0; col < BLOCK_SHAPE_COL; col++)
+	{
+		lowestRow[col] = -1;
+		for (row = BLOCK_SHAPE_ROW - 1; row >= 0; row--)
+		{
+			if (block->Shape[row][col] == 1)
+			{
+				lowestRow[col] = row;
+				break;
+			}
+		}
+	}
+
+	for (col = 0; col < BLOCK_SHAPE_COL; col++)
+	{
+		if (lowestRow[col] < 0)
+		{
+			continue;
+		}
+		
+		nextRow = targetPosition->y + lowestRow[col] + 1;
+		nextCol = targetPosition->x + col;
+		if (nextRow >= MAP_ROW || map->Map[nextRow][nextCol] != BlockTile_Empty)
+		{
+			return true;
 		}
 	}
 
@@ -162,22 +221,38 @@ bool ShiftLine(TetrisMap* map, int originRow, int targetRow)
 	return true;
 }
 
+void ClearLine(TetrisMap* map, int row)
+{
+	int col;
+
+	if (row < 0 || row >= MAP_ROW)
+	{
+		printf("ClearLine: Out of index, row: '%d'\n", row);
+		return false;
+	}
+
+	memset(map->Map[row], 0, MAP_SIZE / MAP_ROW);
+}
+
 int ClearFullLine(TetrisMap* map)
 {
 	int clearedLine = 0;
+	int emptyLineNumber = 0;
 	int row, emptyRow, targetRow;
 	bool emptyLineChecker[MAP_ROW];
 
 	memset(emptyLineChecker, false, sizeof(bool) * MAP_ROW);
 
-	for (row = 0; row < MAP_ROW; row++)
+	for (row = MAP_ROW - 1; row >= 0; row--)
 	{
 		if (IsLineFull(map, row) == true)
 		{
+			ClearLine(map, row);
 			clearedLine++;
+			emptyLineNumber++;
 			emptyLineChecker[row] = true;
 		}
-		else
+		else if (emptyLineNumber > 0)
 		{
 			targetRow = row;
 			for (emptyRow = row + 1; emptyRow < MAP_ROW; emptyRow++)
@@ -211,7 +286,7 @@ bool SpawnBlock(TetrisMap* map, Block block)
 
 	block.Position = SPAWN_POSITION;
 
-	if (IsCollide(map, &block, block.Position) == true)
+	if (IsCollide(map, &block, &block.Position) == true)
 	{
 		// TODO: GameOver
 		printf("GameOver\n");
@@ -228,10 +303,35 @@ void SpawnGarbage(TetrisMap* map)
 {
 }
 
+bool AddBlock(TetrisMap* map, Block* block)
+{
+	int row, col;
+
+	if (IsOutOfMap(map, block, &block->Position) == true)
+	{
+		printf("AddBlock: Block is out of map, Block: (Position: (x: '%d', y: '%d'))\n",
+			block->Position.x, block->Position.y);
+		return false;
+	}
+
+	for (row = 0; row < BLOCK_SHAPE_ROW; row++)
+	{
+		for (col = 0; col < BLOCK_SHAPE_COL; col++)
+		{
+			if (block->Shape[row][col] != 0)
+			{
+				map->Map[block->Position.y + row][block->Position.x + col] = block->Tile;
+			}
+		}
+	}
+
+	return true;
+}
+
 bool MoveBlock(TetrisMap* map, MoveDirection direction)
 {
 	const Point PRESET[MOVE_DIRECTION_NUMBER] = { { 0, -1 }, { 1, 0 }, { 0, 1 }, { -1, 0 } };
-	Point movedPosition;
+	Point movedPosition, shiftAmount;
 
 	if (map->CurrentBlock.IsValid == false)
 	{
@@ -245,9 +345,10 @@ bool MoveBlock(TetrisMap* map, MoveDirection direction)
 		return false;
 	}
 
-	movedPosition = AddPoint(&map->CurrentBlock.Position, &PRESET[direction]);
+	shiftAmount = PRESET[direction];
+	movedPosition = AddPoint(&map->CurrentBlock.Position, &shiftAmount);
 
-	if (IsCollide(map, &map->CurrentBlock, movedPosition) == true)
+	if (IsCollide(map, &map->CurrentBlock, &movedPosition) == true)
 	{
 		return false;
 	}
@@ -276,7 +377,7 @@ bool RotateBlock(TetrisMap* map, RotateDirection direction)
 	rotatedBlock = map->CurrentBlock;
 	RotateBlockShape(&rotatedBlock, direction);
 
-	if (IsCollide(map, &rotatedBlock, rotatedBlock.Position) == true)
+	if (IsCollide(map, &rotatedBlock, &rotatedBlock.Position) == true)
 	{
 		return false;
 	}
@@ -311,17 +412,17 @@ bool DropDownBlock(TetrisMap* map)
 
 Point GetDropDownPosition(TetrisMap* map, Block* block)
 {
-	int x, y;
+	int y;
 	Point dropDownPosition, testPosition;
 
 	dropDownPosition = block->Position;
+	testPosition.x = block->Position.x;
 
-	for (x = block->Position.x, y = block->Position.y; y <= MAP_ROW - BLOCK_SHAPE_ROW; y++)
+	for (y = block->Position.y; y < MAP_ROW; y++)
 	{
-		testPosition.x = x;
 		testPosition.y = y;
 
-		if (IsCollide(map, block, testPosition) == true)
+		if (IsCollide(map, block, &testPosition) == true)
 		{
 			break;
 		}
