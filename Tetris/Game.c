@@ -102,11 +102,11 @@ void GetUserInput(InputCollection* inputCollection)
  		{
  			if (led & 0x1 << (row * 4 + col))
  			{
- 				printf("O");
+ 				printf("○");
  			}
  			else
  			{
- 				printf("X");
+ 				printf("●");
  			}
  		}
  		printf("\n");
@@ -128,11 +128,11 @@ void GetUserInput(InputCollection* inputCollection)
  		{
  			if (dotMatrix[row][col] == 0)
  			{
- 				printf("O");
+				printf("○");
  			}
  			else
  			{
- 				printf("X");
+				printf("●");
  			}
  		}
  		printf("\n");
