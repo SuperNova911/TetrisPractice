@@ -223,12 +223,10 @@ bool ShiftLine(TetrisMap* map, int originRow, int targetRow)
 
 void ClearLine(TetrisMap* map, int row)
 {
-	int col;
-
 	if (row < 0 || row >= MAP_ROW)
 	{
 		printf("ClearLine: Out of index, row: '%d'\n", row);
-		return false;
+		return;
 	}
 
 	memset(map->Map[row], 0, MAP_SIZE / MAP_ROW);
