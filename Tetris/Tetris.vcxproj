@@ -72,7 +72,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
@@ -129,7 +129,6 @@
     <ClCompile Include="Game.c" />
     <ClCompile Include="Map.c" />
     <ClCompile Include="Tetris.c" />
-    <ClCompile Include="test.c" />
     <ClCompile Include="TickTimer.c" />
     <ClCompile Include="Point.c" />
   </ItemGroup>
