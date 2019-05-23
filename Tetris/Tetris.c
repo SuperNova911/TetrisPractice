@@ -44,6 +44,8 @@ void UpdateTetris(TetrisGame* tetris)
 	{
 		newBlock = GetNextBlock(&tetris->BlockBag);
 		SpawnBlock(&tetris->GameMap, newBlock);
+		RestartTimer(&tetris->GameCore.GravityTimer);
+		return;
 	}
 
 	HandleUserInput(tetris);
@@ -67,7 +69,7 @@ void Gravity(TetrisGame* tetris)
 
 	if (IsReady(&tetris->GameCore.GravityTimer) == true)
 	{
-		MoveBlock(&tetris->GameMap, Move_Down);
+		ControlBlockMovement(tetris, Move_Down);
 	}
 }
 
@@ -83,6 +85,7 @@ void Lock(TetrisGame* tetris)
 	{
 		AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
 		tetris->GameMap.CurrentBlock.IsValid = false;
+		tetris->GameCore.WaitForLock = false;
 		ClearFullLine(&tetris->GameMap);
 	}
 }
