@@ -1,16 +1,16 @@
-#include <process.h>
+//#include <process.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <Windows.h>
+//#include <Windows.h>
 #include "driverManager.h"
 #include "Tetris.h"
 #include "TickTimer.h"
 #include "Point.h"
 
- void UpdateDevice();
- unsigned _stdcall Thread_Device(void* arg);
+//void UpdateDevice();
+//unsigned _stdcall Thread_Device(void* arg);
 
 void GetUserInput(InputCollection* inputCollection);
 
@@ -30,7 +30,7 @@ int main()
 	InitializeTickTimer(&updateTimer, 100);
 
 	RunTetris(&tetris);
-	_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
+//	_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
 	while (true)
 	{
 		WaitNextTick(&updateTimer);
@@ -75,7 +75,7 @@ void GetUserInput(InputCollection* inputCollection)
 	}
 }
 
- unsigned _stdcall Thread_Device(void* arg)
+/* unsigned _stdcall Thread_Device(void* arg)
  {
  	while (true)
  	{
@@ -139,4 +139,4 @@ void GetUserInput(InputCollection* inputCollection)
  	}
  	printf("\n");
  	printf("Update Counter: '%d'\n", UPDATE_COUNTER++);
- }
+ }*/

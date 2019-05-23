@@ -1,7 +1,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <Windows.h>
+//#include <Windows.h>
 
 #include "dot_matrix_font.h"
 #include "driverManager.h"
@@ -52,7 +52,7 @@ size_t GetSwitchStatus(unsigned char statusBuffer[])
 	const int SIZE = 9;
 	memset(statusBuffer, 0, sizeof(unsigned char) * SIZE);
 
-	statusBuffer[0] = GetAsyncKeyState(VK_NUMPAD1) != 0 ? 1 : 0;
+/*	statusBuffer[0] = GetAsyncKeyState(VK_NUMPAD1) != 0 ? 1 : 0;
 	statusBuffer[1] = GetAsyncKeyState(VK_NUMPAD2) != 0 ? 1 : 0;
 	statusBuffer[2] = GetAsyncKeyState(VK_NUMPAD3) != 0 ? 1 : 0;
 	statusBuffer[3] = GetAsyncKeyState(VK_NUMPAD4) != 0 ? 1 : 0;
@@ -61,7 +61,7 @@ size_t GetSwitchStatus(unsigned char statusBuffer[])
 	statusBuffer[6] = GetAsyncKeyState(VK_NUMPAD7) != 0 ? 1 : 0;
 	statusBuffer[7] = GetAsyncKeyState(VK_NUMPAD8) != 0 ? 1 : 0;
 	statusBuffer[8] = GetAsyncKeyState(VK_NUMPAD9) != 0 ? 1 : 0;
-
+*/
 	return SIZE;
 }
 
@@ -81,9 +81,10 @@ bool IsSwitchOn(int switchNumber)
 // DotMatrix Management
 bool SetDotMatrix(int matrix[][7])
 {
-	for (int row = 0; row < 10; row++)
+    int row, col;
+	for (row = 0; row < 10; row++)
 	{
-		for (int col = 0; col < 7; col++)
+		for (col = 0; col < 7; col++)
 		{
 			DotMatrix_Value[row][col] = matrix[row][col];
 		}
@@ -94,7 +95,8 @@ bool SetDotMatrix(int matrix[][7])
 
 bool SetDotMatrixByNumber(int value)
 {
-	for (int row = 0; row < 10; row++)
+    int row;
+	for (row = 0; row < 10; row++)
 	{
 		DotMatrix_Value[row][0] = (int)dot_matrix_font[value][row] & 0x1 << 6 ? 1 : 0;
 		DotMatrix_Value[row][1] = (int)dot_matrix_font[value][row] & 0x1 << 5 ? 1 : 0;
