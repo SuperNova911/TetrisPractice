@@ -16,7 +16,7 @@ bool SetLED(unsigned char value);
 unsigned char GetLED();
 void ClearLED();
 
-int GetSwitchStatus();
+int GetSwitchStatus(unsigned char statusBuffer[]);
 bool IsSwitchOn(int switchNumber);
 
 void ConvertMatrixToFont(unsigned char matrix[][DOT_MATRIX_COL], unsigned char font[]);
