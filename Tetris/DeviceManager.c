@@ -1,23 +1,21 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-//#include <Windows.h>
+#include <math.h>
+#include <Windows.h>
 
+#include "DeviceManager.h"
 #include "dot_matrix_font.h"
-#include "driverManager.h"
-
-const unsigned char LED_CLEAR_VALUE = 0;
-const int PUSH_SWITCH_NUMBER = 9;
 
 int LEDFD;
 int PushSwitchFD;
 int DotMatrixFD;
 
 unsigned char LED_Value;
-unsigned char DotMatrix_Value[10][7];
+unsigned char DotMatrix_Value[DOT_MATRIX_ROW][DOT_MATRIX_COL];
 
 // Open, Close Drivers
-bool OpenDriver_kappa()
+bool OpenDevice()
 {
 	ClearLED();
 	ClearDotMatrix();
@@ -25,7 +23,7 @@ bool OpenDriver_kappa()
 	return true;
 }
 
-void CloseDriver_kappa()
+void CloseDevice()
 {
 }
 
@@ -43,16 +41,16 @@ unsigned char GetLED()
 
 void ClearLED()
 {
-	LED_Value = 0;
+	LED_Value = LED_CLEAR_VALUE;
 }
 
 // PushSwitch Management
-size_t GetSwitchStatus(unsigned char statusBuffer[])
+int GetSwitchStatus(unsigned char statusBuffer[])
 {
 	const int SIZE = 9;
 	memset(statusBuffer, 0, sizeof(unsigned char) * SIZE);
 
-/*	statusBuffer[0] = GetAsyncKeyState(VK_NUMPAD1) != 0 ? 1 : 0;
+	statusBuffer[0] = GetAsyncKeyState(VK_NUMPAD1) != 0 ? 1 : 0;
 	statusBuffer[1] = GetAsyncKeyState(VK_NUMPAD2) != 0 ? 1 : 0;
 	statusBuffer[2] = GetAsyncKeyState(VK_NUMPAD3) != 0 ? 1 : 0;
 	statusBuffer[3] = GetAsyncKeyState(VK_NUMPAD4) != 0 ? 1 : 0;
@@ -61,7 +59,7 @@ size_t GetSwitchStatus(unsigned char statusBuffer[])
 	statusBuffer[6] = GetAsyncKeyState(VK_NUMPAD7) != 0 ? 1 : 0;
 	statusBuffer[7] = GetAsyncKeyState(VK_NUMPAD8) != 0 ? 1 : 0;
 	statusBuffer[8] = GetAsyncKeyState(VK_NUMPAD9) != 0 ? 1 : 0;
-*/
+
 	return SIZE;
 }
 
@@ -78,19 +76,37 @@ bool IsSwitchOn(int switchNumber)
 	return statusBuffer[switchNumber - 1] ? true : false;
 }
 
-// DotMatrix Management
-bool SetDotMatrix(int matrix[][7])
+void ConvertMatrixToFont(unsigned char matrix[][DOT_MATRIX_COL], unsigned char font[])
 {
-    int row, col;
-	for (row = 0; row < 10; row++)
+	int row, col;
+	int power;
+
+	memset(font, 0, sizeof(unsigned char) * DOT_MATRIX_ROW);
+
+	for (row = 0; row < DOT_MATRIX_ROW; row++)
 	{
-		for (col = 0; col < 7; col++)
+		for (power = 0, col = DOT_MATRIX_COL - 1; col >= 0; power++, col--)
 		{
-			DotMatrix_Value[row][col] = matrix[row][col];
+			if (matrix[row][col] == 0)
+			{
+				continue;
+			}
+
+			font[row] += (unsigned char)pow(2, power);
 		}
 	}
+}
 
-	return false;
+void ConvertFontToMatrix(unsigned char font[], unsigned char matrix[][DOT_MATRIX_COL])
+{
+
+}
+
+// DotMatrix Management
+bool SetDotMatrix(unsigned char matrix[][DOT_MATRIX_COL])
+{
+	memcpy(DotMatrix_Value, matrix, sizeof(unsigned char) * DOT_MATRIX_ROW * DOT_MATRIX_COL);
+	return true;
 }
 
 bool SetDotMatrixByNumber(int value)
@@ -110,9 +126,9 @@ bool SetDotMatrixByNumber(int value)
 	return true;
 }
 
-void GetDotMatrix(unsigned char map[][7])
+void GetDotMatrix(unsigned char matrix[][DOT_MATRIX_COL])
 {
-	memcpy(map, DotMatrix_Value, sizeof(DotMatrix_Value));
+	memcpy(matrix, DotMatrix_Value, sizeof(DotMatrix_Value));
 }
 
 void ClearDotMatrix()
