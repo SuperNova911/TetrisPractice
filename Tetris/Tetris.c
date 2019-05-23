@@ -40,54 +40,50 @@ void UpdateTetris(TetrisGame* tetris)
 {
 	Block newBlock;
 
-	if (tetris->GameMap.CurrentBlock.IsValid == false)
+	if (tetris->GameMap.CurrentBlock.IsValid == true)
+	{
+		HandleUserInput(tetris);
+
+		if (tetris->GameCore.WaitForLock == true)
+		{
+			UpdateLock(tetris);
+		}
+		else
+		{
+			UpdateGravity(tetris);
+		}
+	}
+	else
 	{
 		newBlock = GetNextBlock(&tetris->BlockBag);
 		SpawnBlock(&tetris->GameMap, newBlock);
 		RestartTimer(&tetris->GameCore.GravityTimer);
-		return;
-	}
-
-	HandleUserInput(tetris);
-
-	if (tetris->GameCore.WaitForLock == true)
-	{
-		Lock(tetris);
-	}
-	else
-	{
-		Gravity(tetris);
 	}
 }
 
-void Gravity(TetrisGame* tetris)
+void UpdateGravity(TetrisGame* tetris)
 {
-	if (tetris->GameMap.CurrentBlock.IsValid == false)
-	{
-		return;
-	}
-
 	if (IsReady(&tetris->GameCore.GravityTimer) == true)
 	{
 		ControlBlockMovement(tetris, Move_Down);
 	}
 }
 
-void Lock(TetrisGame* tetris)
+void UpdateLock(TetrisGame* tetris)
 {
-	if (tetris->GameMap.CurrentBlock.IsValid == false)
-	{
-		return;
-	}
-
 	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true &&
 		IsReady(&tetris->GameCore.LockTimer) == true)
 	{
-		AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
-		tetris->GameMap.CurrentBlock.IsValid = false;
-		tetris->GameCore.WaitForLock = false;
-		ClearFullLine(&tetris->GameMap);
+		Lock(tetris);
 	}
+}
+
+void Lock(TetrisGame* tetris)
+{
+	AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
+	tetris->GameMap.CurrentBlock.IsValid = false;
+	tetris->GameCore.WaitForLock = false;
+	ClearFullLine(&tetris->GameMap);
 }
 
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
@@ -132,19 +128,7 @@ void HandleUserInput(TetrisGame* tetris)
 		ControlBlockRotation(tetris, Rotate_Left);
 		break;
 	case Input_DropDown:
-		DropDownBlock(&tetris->GameMap);
-		if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
-		{
-			if (tetris->GameCore.WaitForLock == false)
-			{
-				RestartTimer(&tetris->GameCore.LockTimer);
-				tetris->GameCore.WaitForLock = true;
-			}
-		}
-		else
-		{
-			tetris->GameCore.WaitForLock = false;
-		}
+		ControlBlockDropDown(tetris);
 		break;
 	default:
 		break;
@@ -192,5 +176,20 @@ void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction)
 	else
 	{
 		tetris->GameCore.WaitForLock = false;
+	}
+}
+
+void ControlBlockDropDown(TetrisGame* tetris)
+{
+	DropDownBlock(&tetris->GameMap);
+
+	if (tetris->GameCore.WaitForLock == true)
+	{
+		Lock(tetris);
+	}
+	else
+	{
+		RestartTimer(&tetris->GameCore.LockTimer);
+		tetris->GameCore.WaitForLock = true;
 	}
 }

@@ -36,7 +36,8 @@ void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
-void Gravity(TetrisGame* tetris);
+void UpdateGravity(TetrisGame* tetris);
+void UpdateLock(TetrisGame* tetris);
 void Lock(TetrisGame* tetris);
 
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection);
@@ -44,3 +45,4 @@ void HandleUserInput(TetrisGame* tetris);
 
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
 void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);
+void ControlBlockDropDown(TetrisGame* tetris);
