@@ -1,20 +1,20 @@
-//#include <process.h>
+#include <process.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <Windows.h>
-#include "driverManager.h"
+#include <Windows.h>
+#include "DeviceManager.h"
 #include "Tetris.h"
 #include "TickTimer.h"
 #include "Point.h"
 
-//void UpdateDevice();
-//unsigned _stdcall Thread_Device(void* arg);
+void UpdateDevice();
+unsigned _stdcall Thread_Device(void* arg);
 
 void GetUserInput(InputCollection* inputCollection);
 
-int DotMatrix[10][7];
+unsigned char DotMatrix[10][7];
 
 int main()
 {
@@ -24,20 +24,26 @@ int main()
 	bool map[MAP_ROW][MAP_COL];
 	int row, col;
 
-	OpenDriver_kappa();
+	OpenDevice();
 
 	InitializeTetris(&tetris);
 	InitializeTickTimer(&updateTimer, 100);
 
 	RunTetris(&tetris);
-//	_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
+
+	_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
+
 	while (true)
 	{
 		WaitNextTick(&updateTimer);
+
 		GetUserInput(&userInput);
 		ReadUserInput(&tetris, &userInput);
+
 		UpdateTetris(&tetris);
+
 		RenderToBoolMap(&tetris.GameMap, map);
+
 		for (row = 0; row < MAP_ROW; row++)
 		{
 			for (col = 0; col < MAP_COL; col++)
@@ -48,7 +54,7 @@ int main()
 		SetDotMatrix(DotMatrix);
 	}
 
-	CloseDriver_kappa();
+	CloseDevice();
 
 	return 0;
 }
@@ -75,68 +81,70 @@ void GetUserInput(InputCollection* inputCollection)
 	}
 }
 
-/* unsigned _stdcall Thread_Device(void* arg)
- {
- 	while (true)
- 	{
- 		Sleep(10);
- 		UpdateDevice();
- 	}
- }
+unsigned _stdcall Thread_Device(void* arg)
+{
+	while (true)
+	{
+		Sleep(10);
+		UpdateDevice();
+	}
+}
 
- void UpdateDevice()
- {
- 	static int UPDATE_COUNTER = 0;
+void UpdateDevice()
+{
+	static const char *T = "¡Ü";
+	static const char *F = "¡Û";
+	static int UPDATE_COUNTER = 0;
 
- 	unsigned char led = GetLED();
- 	unsigned char pushSwitch[9];
- 	GetSwitchStatus(pushSwitch);
- 	unsigned char dotMatrix[10][7];
- 	GetDotMatrix(dotMatrix);
+	unsigned char led = GetLED();
+	unsigned char pushSwitch[PUSH_SWITCH_NUMBER];
+	GetSwitchStatus(pushSwitch);
+	unsigned char dotMatrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
+	GetDotMatrix(dotMatrix);
 
- 	system("cls");
- 	printf("LED\n");
- 	for (int row = 1; row >= 0; row--)
- 	{
- 		for (int col = 3; col >= 0; col--)
- 		{
- 			if (led & 0x1 << (row * 4 + col))
- 			{
- 				printf("X");
- 			}
- 			else
- 			{
- 				printf("O");
- 			}
- 		}
- 		printf("\n");
- 	}
- 	printf("\n");
+	system("cls");
+	printf("LED\n");
+	for (int row = 1; row >= 0; row--)
+	{
+		for (int col = 3; col >= 0; col--)
+		{
+			if (led & 0x1 << (row * 4 + col))
+			{
+				printf("%s", T);
+			}
+			else
+			{
+				printf("%s", F);
+			}
+		}
+		printf("\n");
+	}
+	printf("\n");
 
- 	printf("PushSwitch\n");
- 	for (int index = 0; index < 9; index++)
- 	{
- 		printf("[%d:%d] ", index + 1, pushSwitch[index]);
- 	}
- 	printf("\n");
- 	printf("\n");
+	printf("PushSwitch\n");
+	for (int index = 0; index < PUSH_SWITCH_NUMBER; index++)
+	{
+		printf("[%d:%d] ", index + 1, pushSwitch[index]);
+	}
+	printf("\n");
+	printf("\n");
 
- 	printf("DotMatrix\n");
- 	for (int row = 0; row < 10; row++)
- 	{
- 		for (int col = 0; col < 7; col++)
- 		{
- 			if (dotMatrix[row][col] == 0)
- 			{
-				printf("O ");
- 			}
- 			else
- 			{
-				printf("X ");
- 			}
- 		}
- 		printf("\n");
- 	}
- 	printf("\n");
- 	printf("Update Counter: '%d'\n", UPDATE_COUNTER++);
- }*/
+	printf("DotMatrix\n");
+	for (int row = 0; row < DOT_MATRIX_ROW; row++)
+	{
+		for (int col = 0; col < DOT_MATRIX_COL; col++)
+		{
+			if (dotMatrix[row][col] == 0)
+			{
+				printf("%s", F);
+			}
+			else
+			{
+				printf("%s", T);
+			}
+		}
+		printf("\n");
+	}
+	printf("\n");
+	printf("Update Counter: '%d'\n", UPDATE_COUNTER++);
+}
