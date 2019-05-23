@@ -125,7 +125,7 @@
   <ItemGroup>
     <ClCompile Include="Block.c" />
     <ClCompile Include="BlockBag.c" />
-    <ClCompile Include="driverManager.c" />
+    <ClCompile Include="DeviceManager.c" />
     <ClCompile Include="Game.c" />
     <ClCompile Include="Map.c" />
     <ClCompile Include="Tetris.c" />
@@ -136,8 +136,8 @@
     <ClInclude Include="Block.h" />
     <ClInclude Include="BlockBag.h" />
     <ClInclude Include="Control.h" />
+    <ClInclude Include="DeviceManager.h" />
     <ClInclude Include="dot_matrix_font.h" />
-    <ClInclude Include="driverManager.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="Tetris.h" />
     <ClInclude Include="TickTimer.h" />
