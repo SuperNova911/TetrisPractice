@@ -39,6 +39,9 @@
     <ClCompile Include="DeviceManager.c">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Control.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dot_matrix_font.h">
@@ -68,8 +71,5 @@
     <ClInclude Include="DeviceManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
   </ItemGroup>
 </Project>

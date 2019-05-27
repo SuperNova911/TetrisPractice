@@ -125,6 +125,7 @@
   <ItemGroup>
     <ClCompile Include="Block.c" />
     <ClCompile Include="BlockBag.c" />
+    <ClCompile Include="Control.c" />
     <ClCompile Include="DeviceManager.c" />
     <ClCompile Include="Game.c" />
     <ClCompile Include="Map.c" />
@@ -142,9 +143,6 @@
     <ClInclude Include="Tetris.h" />
     <ClInclude Include="TickTimer.h" />
     <ClInclude Include="Point.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
