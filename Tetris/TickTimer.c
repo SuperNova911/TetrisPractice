@@ -3,17 +3,10 @@
 #include <Windows.h>
 #include "TickTimer.h"
 
-//long GetTickCount64()
-//{
-//    struct timespec ts;
-//    //clock_gettime(CLOCK_MONOTONIC, &ts);
-//    return (ts.tv_nsec / 1000000) + (ts.tv_sec * 1000);
-//}
-
 void InitializeTickTimer(TickTimer* timer, unsigned int delay)
 {
 	timer->Delay = delay;
-	timer->LastTick = GetTickCount64();
+	timer->LastTick = GetTickCount_Tetris();
 }
 
 void WaitNextTick(TickTimer* timer)
@@ -29,13 +22,13 @@ void WaitNextTick(TickTimer* timer)
 
 void RestartTimer(TickTimer* timer)
 {
-	timer->LastTick = GetTickCount64();
+	timer->LastTick = GetTickCount_Tetris();
 }
 
 bool IsReady(TickTimer* timer)
 {
 	static long CurrentTick;
-	CurrentTick = GetTickCount64();
+	CurrentTick = GetTickCount_Tetris();
 
 	if (CurrentTick - timer->LastTick >= timer->Delay)
 	{
@@ -44,4 +37,13 @@ bool IsReady(TickTimer* timer)
 	}
 
 	return false;
+}
+
+long GetTickCount_Tetris()
+{
+	/*struct timespec ts;
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+	return (ts.tv_nsec / 1000000) + (ts.tv_sec * 1000);*/
+
+	return (long)GetTickCount64();
 }
