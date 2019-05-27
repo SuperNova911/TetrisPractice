@@ -39,7 +39,7 @@ bool IsReady(TickTimer* timer)
 	return false;
 }
 
-long GetTickCount_Tetris()
+long GetTickCount()
 {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
