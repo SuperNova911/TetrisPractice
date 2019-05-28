@@ -137,6 +137,11 @@ void HandleUserInput(TetrisGame* tetris)
 	tetris->UserInput.Type = InputType_None;
 }
 
+void InputTest(TetrisGame* tetris, InputInfo* inputInfo)
+{
+    memcpy(&tetris->UserInput, inputInfo, sizeof(InputInfo));
+}
+
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction)
 {
 	bool controlResult;

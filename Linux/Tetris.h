@@ -42,6 +42,7 @@ void Lock(TetrisGame* tetris);
 
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection);
 void HandleUserInput(TetrisGame* tetris);
+void InputTest(TetrisGame* tetirs, InputInfo* inputInfo);
 
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
 void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);
