@@ -14,6 +14,7 @@ void InitializeMap(TetrisMap* map)
 	ClearMap(map);
 	InitializeBlock(&map->CurrentBlock);
 	map->RenderGhostBlock = false;
+	map->AllowWallKick = true;
 }
 
 void ClearMap(TetrisMap* map)
@@ -85,11 +86,11 @@ bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition)
 	return false;
 }
 
-bool IsCollide(TetrisMap* map, Block* block, Point* targetPosition)
+bool IsCollide(TetrisMap* map, Block* block, Point* targetPosition, bool checkOutOfMap)
 {
 	int row, col;
 
-	if (IsOutOfMap(map, block, targetPosition) == true)
+	if (checkOutOfMap == true && IsOutOfMap(map, block, targetPosition) == true)
 	{
 		return true;
 	}
@@ -284,7 +285,7 @@ bool SpawnBlock(TetrisMap* map, Block block)
 
 	block.Position = SPAWN_POSITION;
 
-	if (IsCollide(map, &block, &block.Position) == true)
+	if (IsCollide(map, &block, &block.Position, true) == true)
 	{
 		// TODO: GameOver
 		printf("GameOver\n");
@@ -346,7 +347,7 @@ bool MoveBlock(TetrisMap* map, MoveDirection direction)
 	shiftAmount = PRESET[direction];
 	movedPosition = AddPoint(&map->CurrentBlock.Position, &shiftAmount);
 
-	if (IsCollide(map, &map->CurrentBlock, &movedPosition) == true)
+	if (IsCollide(map, &map->CurrentBlock, &movedPosition, true) == true)
 	{
 		return false;
 	}
@@ -375,7 +376,19 @@ bool RotateBlock(TetrisMap* map, RotateDirection direction)
 	rotatedBlock = map->CurrentBlock;
 	RotateBlockShape(&rotatedBlock, direction);
 
-	if (IsCollide(map, &rotatedBlock, &rotatedBlock.Position) == true)
+	if (map->AllowWallKick == true && IsOutOfMap(map, &rotatedBlock, &rotatedBlock.Position) == true)
+	{
+		if (rotatedBlock.Position.x < MAP_COL / 2)
+		{
+			rotatedBlock.Position.x++;
+		}
+		else
+		{
+			rotatedBlock.Position.x--;
+		}
+	}
+
+	if (IsCollide(map, &rotatedBlock, &rotatedBlock.Position, false) == true)
 	{
 		return false;
 	}
@@ -399,8 +412,8 @@ bool DropDownBlock(TetrisMap* map)
 
 	if (IsEqualPoint(&dropDownPosition, &map->CurrentBlock.Position) == true)
 	{
-		printf("DropDownBlock: Cannot drop down anymore, DropDownPosition: (x: '%d', y: '%d')\n",
-			dropDownPosition.x, dropDownPosition.y);
+		/*printf("DropDownBlock: Cannot drop down anymore, DropDownPosition: (x: '%d', y: '%d')\n",
+			dropDownPosition.x, dropDownPosition.y);*/
 		return false;
 	}
 
@@ -420,7 +433,7 @@ Point GetDropDownPosition(TetrisMap* map, Block* block)
 	{
 		testPosition.y = y;
 
-		if (IsCollide(map, block, &testPosition) == true)
+		if (IsCollide(map, block, &testPosition, true) == true)
 		{
 			break;
 		}

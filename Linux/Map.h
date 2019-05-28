@@ -12,6 +12,7 @@ typedef struct TetrisMap_t
 {
 	BlockTile Map[MAP_ROW][MAP_COL];
 	Block CurrentBlock;
+	bool AllowWallKick;
 	bool RenderGhostBlock;
 } TetrisMap;
 
@@ -22,7 +23,7 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL]);
 void RenderGhostBlock(TetrisMap* map, bool renderGhostBlock);
 
 bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition);
-bool IsCollide(TetrisMap* map, Block* block, Point* targetPosition);
+bool IsCollide(TetrisMap* map, Block* block, Point* targetPosition, bool checkOutOfMap);
 bool IsLockAhead(TetrisMap* map, Block* block, Point* targetPosition);
 
 bool IsLineEmpty(TetrisMap* map, int row);
