@@ -22,6 +22,7 @@ void UpdateInputAsync();
 void* UpdateSwitchInput(void* inputManager);
 
 void DrawMap();
+void DrawNextBlock();
 
 // Tetris
 TetrisGame Tetris;
@@ -80,6 +81,7 @@ void UpdateGame()
 		UpdateTetris(&Tetris);
 
 		DrawMap();
+		DrawNextBlock();
 	}
 }
 
@@ -119,4 +121,12 @@ void DrawMap()
 	}
 
 	SetDotMatrix(convertedMap);
+}
+
+void DrawNextBlock()
+{
+	unsigned char renderedNextBlock = 0;
+
+	RenderNextBlock(&Tetris.GameMap, &renderedNextBlock);
+	SetLED(renderedNextBlock);
 }

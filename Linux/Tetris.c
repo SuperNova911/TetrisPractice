@@ -55,8 +55,10 @@ void UpdateTetris(TetrisGame* tetris)
 	}
 	else
 	{
+		SpawnBlock(&tetris->GameMap, tetris->GameMap.NextBlock);
 		newBlock = GetNextBlock(&tetris->BlockBag);
-		SpawnBlock(&tetris->GameMap, newBlock);
+		PrepareNextBlock(&tetris->GameMap, newBlock);
+		
 		RestartTimer(&tetris->GameCore.GravityTimer);
 	}
 }
