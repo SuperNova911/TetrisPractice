@@ -34,7 +34,7 @@ bool ShiftLine(TetrisMap* map, int originRow, int targetRow);
 void ClearLine(TetrisMap* map, int row);
 int ClearFullLine(TetrisMap* map);
 
-void PrepareNextBlock(TetrisMap* map);
+void PrepareNextBlock(TetrisMap* map, Block block);
 bool SpawnBlock(TetrisMap* map, Block block);
 void SpawnGarbage(TetrisMap* map);
 
