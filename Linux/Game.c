@@ -5,103 +5,118 @@
 #include <string.h>
 #include "Control.h"
 #include "DeviceManager.h"
+#include "Point.h"
 #include "Tetris.h"
 #include "TickTimer.h"
-#include "Point.h"
 
-void GetUserInput(InputCollection* inputCollection);
-void* GetUserInput_Thread(void* inputManager);
+#define GAME_UPDATE_SPEED 100
+#define INPUT_UPDATE_SPEED 10
+#define WALLKICK_ENABLE true
 
+void Initialize();
+void SetOptions(int argc, char* argv[]);
+
+void UpdateGame();
+
+void UpdateInputAsync();
+void* UpdateSwitchInput(void* inputManager);
+
+void DrawMap();
+
+// Tetris
+TetrisGame Tetris;
+TickTimer GameUpdateTimer;
+
+// Input
+InputManager Input;
+TickTimer InputUpdateTimer;
+pthread_t InputUpdateThread;
+
+// Device
 unsigned char DotMatrix[10][7];
 
-int main()
+int main(int argc, char* argv[])
 {
-	TickTimer updateTimer;
-	TetrisGame tetris;
-	bool map[MAP_ROW][MAP_COL];
-	int row, col;
-    pthread_t inputThread;
-    int status;
-    InputManager inputManager;
-    InputInfo inputInfo;
-
 	OpenDevice();
 
-	InitializeTetris(&tetris);
-	InitializeTickTimer(&updateTimer, 100);
-    InitializeInputManager(&inputManager);
+	Initialize();
+	SetOptions(argc, argv);
 
-	RunTetris(&tetris);
-
-    inputThread = pthread_create(&inputThread, NULL, GetUserInput_Thread, (void *)&inputManager);
-    if (inputThread < 0)
-    {
-        printf("Failed to create UserInput thread, id: '%d'\n", (int)inputThread);
-    }
-
-    pthread_join(inputThread, (void **)&status);
-
-	while (true)
-	{
-		WaitNextTick(&updateTimer);
-
-        inputInfo = Dequeue(&inputManager.InputQueue);
-        InputTest(&tetris, &inputInfo);
-
-		UpdateTetris(&tetris);
-
-		RenderToBoolMap(&tetris.GameMap, map);
-
-		for (row = 0; row < MAP_ROW; row++)
-		{
-			for (col = 0; col < MAP_COL; col++)
-			{
-				DotMatrix[row][col] = map[row][col] == true ? 1 : 0;
-			}
-		}
-		SetDotMatrix(DotMatrix);
-	}
+	RunTetris(&Tetris);
+	UpdateInputAsync();
+	UpdateGame();
 
 	CloseDevice();
 
 	return 0;
 }
 
-void GetUserInput(InputCollection* inputCollection)
+void Initialize()
 {
-	int index;
-	unsigned char switchStatus[PUSH_SWITCH_NUMBER];
+	InitializeTetris(&Tetris);
+	InitializeTickTimer(&GameUpdateTimer, GAME_UPDATE_SPEED);
 
-    GetSwitchStatus(switchStatus);
+	InitializeInputManager(&Input);
+	InitializeTickTimer(&InputUpdateTimer, INPUT_UPDATE_SPEED);
+	InputUpdateThread = pthread_create(&InputUpdateThread, NULL, UpdateSwitchInput, NULL);
+}
 
-	for (index = 0; index < PUSH_SWITCH_NUMBER; index++)
+void SetOptions(int argc, char* argv[])
+{
+	Tetris.GameMap.AllowWallKick = WALLKICK_ENABLE;
+}
+
+void UpdateGame()
+{
+	InputInfo inputInfo;
+
+	while (true)
 	{
-		inputCollection->Input[index].Command = index;
+		WaitNextTick(&GameUpdateTimer);
 
-		if (switchStatus[index] > 0)
-		{
-			inputCollection->Input[index].Type = InputType_Click;
-		}
-		else
-		{
-			inputCollection->Input[index].Type = InputType_None;
-		}
+		inputInfo = Dequeue(&Input.InputQueue);
+		InputTest(&Tetris, &inputInfo);
+
+		UpdateTetris(&Tetris);
+
+		DrawMap();
 	}
 }
 
-void* GetUserInput_Thread(void* inputManager)
+void UpdateInputAsync()
 {
-    InputManager* manager = (InputManager *)inputManager;
-    unsigned char switchStatus[INPUT_SOURCE_NUMBER];
-    TickTimer inputTimer;
+	int result = 0;
+	pthread_join(InputUpdateThread, (void**)& result);
+}
 
-    InitializeTickTimer(&inputTimer, 10);
+void* UpdateSwitchInput(void* unused)
+{
+    unsigned char switchStatus[PUSH_SWITCH_NUMBER];
     memset(switchStatus, 0, sizeof(switchStatus));
 
     while (true)
     {
-        WaitNextTick(&inputTimer);
+        WaitNextTick(&InputUpdateTimer);
         GetSwitchStatus(switchStatus);
-        HandleInput(manager, switchStatus);
+        HandleInput(&Input, switchStatus);
     }
+}
+
+void DrawMap()
+{
+	int row, col;
+	bool renderedMap[MAP_ROW][MAP_COL];
+	unsigned char convertedMap[MAP_ROW][MAP_COL];
+
+	RenderToBoolMap(&Tetris.GameMap, renderedMap);
+
+	for (row = 0; row < MAP_ROW; row++)
+	{
+		for (col = 0; col < MAP_COL; col++)
+		{
+			convertedMap[row][col] = renderedMap[row][col] == true ? 1 : 0;
+		}
+	}
+
+	SetDotMatrix(convertedMap);
 }
