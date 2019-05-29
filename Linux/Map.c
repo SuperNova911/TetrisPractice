@@ -71,7 +71,7 @@ void RenderNextBlock(TetrisMap* map, unsigned char* renderedNextBlock)
 				continue;
 			}
 
-			renderedResult += (unsigned char)pow(((LED_ROW - row - 1) * 4) + (LED_COL - col - 1));
+			renderedResult += (unsigned char)pow(2, ((LED_ROW - row - 1) * 4) + (LED_COL - col - 1));
 		}
 	}
 
