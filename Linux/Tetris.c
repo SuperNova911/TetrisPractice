@@ -239,6 +239,10 @@ void AddScore(TetrisGame* tetris, unsigned int clearedLine)
 		tetris->GameInfo.Combo += (clearedLine - 1);
 	}
 
+    if (tetris->GameInfo.Combo > 0)
+    {
+        tetris->GameInfo.Score += COMBO_SCORE * tetris->GameInfo.Combo;
+    }
+
 	tetris->GameInfo.Score += SCORE_PRESET[clearedLine] * tetris->GameInfo.Stage;
-	tetris->GameInfo.Score += COMBO_SCORE * tetris->GameInfo.Combo;
 }
