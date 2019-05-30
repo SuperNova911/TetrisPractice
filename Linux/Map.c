@@ -307,7 +307,7 @@ bool SpawnBlock(TetrisMap* map, Block block)
 	{
 		printf("SpawnBlock: Map already has valid Block, Block: (Tile: '%d', Position: (x: '%d', y: '%d'))\n", 
 			map->CurrentBlock.Tile, map->CurrentBlock.Position.x, map->CurrentBlock.Position.y);
-		return false;
+		return true;
 	}
 
 	block.Position = SPAWN_POSITION;
