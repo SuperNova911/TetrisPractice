@@ -82,6 +82,11 @@ void UpdateGame()
 
 		DrawMap();
 		DrawNextBlock();
+
+		if (IsTetrisGameOver(&tetris) == true)
+		{
+			break;
+		}
 	}
 }
 
