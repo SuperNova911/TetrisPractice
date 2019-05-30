@@ -10,7 +10,7 @@
 #include "TickTimer.h"
 
 #define GAME_UPDATE_SPEED 100
-#define INPUT_UPDATE_SPEED 10
+#define INPUT_UPDATE_SPEED 1
 #define WALLKICK_ENABLE true
 
 void Initialize();
@@ -83,7 +83,7 @@ void UpdateGame()
 		DrawMap();
 		DrawNextBlock();
 
-		if (IsTetrisGameOver(&tetris) == true)
+		if (IsTetrisGameOver(&Tetris) == true)
 		{
 			break;
 		}
