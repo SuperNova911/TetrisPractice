@@ -18,9 +18,11 @@ typedef struct TetrisInfo_t
 {
 	unsigned int Stage;
 	unsigned int Score;
+	int Combo;
 	unsigned int Gravity;
 	unsigned int LockDelay;
 	bool IsRunning;
+	bool IsGameOver;
 } TetrisInfo;
 
 typedef struct TetrisGame_t
@@ -34,6 +36,7 @@ typedef struct TetrisGame_t
 
 void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
+bool IsTetrisGameOver(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
 void UpdateGravity(TetrisGame* tetris);
@@ -47,3 +50,5 @@ void InputTest(TetrisGame* tetirs, InputInfo* inputInfo);
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
 void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);
 void ControlBlockDropDown(TetrisGame* tetris);
+
+void AddScore(TetrisGame* tetris, unsigned int clearedLine);

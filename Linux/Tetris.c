@@ -13,11 +13,16 @@ void InitializeTetris(TetrisGame* tetris)
 {
 	InitializeMap(&tetris->GameMap);
 
-	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1000);
-	InitializeTickTimer(&tetris->GameCore.LockTimer, 1500);
-	tetris->GameCore.WaitForLock = false;
-
+	tetris->GameInfo.Stage = 1;
+	tetris->GameInfo.Score = 0;
+	tetris->GameInfo.Gravity = 1000;
+	tetris->GameInfo.LockDelay = 1500;
 	tetris->GameInfo.IsRunning = false;
+	tetris->GameInfo.IsGameOver = false;
+
+	InitializeTickTimer(&tetris->GameCore.GravityTimer, tetris->GameInfo.Gravity);
+	InitializeTickTimer(&tetris->GameCore.LockTimer, tetris->GameInfo.LockDelay);
+	tetris->GameCore.WaitForLock = false;
 
 	InitializeBlockBag(&tetris->BlockBag);
 
@@ -34,6 +39,11 @@ void RunTetris(TetrisGame* tetris)
 	}
 
 	tetris->GameInfo.IsRunning = true;
+}
+
+bool IsTetrisGameOver(TetrisGame* tetris)
+{
+	return tetris->GameInfo.IsGameOver;
 }
 
 void UpdateTetris(TetrisGame* tetris)
@@ -55,11 +65,15 @@ void UpdateTetris(TetrisGame* tetris)
 	}
 	else
 	{
-		SpawnBlock(&tetris->GameMap, tetris->GameMap.NextBlock);
+		tetris->GameInfo.IsGameOver = !SpawnBlock(&tetris->GameMap, tetris->GameMap.NextBlock);
 		newBlock = GetNextBlock(&tetris->BlockBag);
 		PrepareNextBlock(&tetris->GameMap, newBlock);
-		
 		RestartTimer(&tetris->GameCore.GravityTimer);
+	}
+
+	if (tetris->GameInfo.IsGameOver == true)
+	{
+		printf("Stage: '%d', Score: '%d'\n", tetris->GameInfo.Stage, tetris->GameInfo.Score);
 	}
 }
 
@@ -82,10 +96,14 @@ void UpdateLock(TetrisGame* tetris)
 
 void Lock(TetrisGame* tetris)
 {
+	int clearedLine;
+
 	AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
 	tetris->GameMap.CurrentBlock.IsValid = false;
 	tetris->GameCore.WaitForLock = false;
-	ClearFullLine(&tetris->GameMap);
+
+	clearedLine = ClearFullLine(&tetris->GameMap);
+	AddScore(tetris, clearedLine);
 }
 
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
@@ -141,7 +159,7 @@ void HandleUserInput(TetrisGame* tetris)
 
 void InputTest(TetrisGame* tetris, InputInfo* inputInfo)
 {
-    memcpy(&tetris->UserInput, inputInfo, sizeof(InputInfo));
+	memcpy(&tetris->UserInput, inputInfo, sizeof(InputInfo));
 }
 
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction)
@@ -199,4 +217,28 @@ void ControlBlockDropDown(TetrisGame* tetris)
 		RestartTimer(&tetris->GameCore.LockTimer);
 		tetris->GameCore.WaitForLock = true;
 	}
+}
+
+void AddScore(TetrisGame* tetris, unsigned int clearedLine)
+{
+	const unsigned int SCORE_PRESET[5] = { 0, 40, 100, 300, 1200 };
+	const unsigned int COMBO_SCORE = 50;
+
+	if (clearedLine < 0 || clearedLine > 4)
+	{
+		printf("AddScore: Invalid clearedLine, line: '%d'\n", clearedLine);
+		return;
+	}
+
+	if (clearedLine == 0)
+	{
+		tetris->GameInfo.Combo = -1;
+	}
+	else
+	{
+		tetris->GameInfo.Combo += (clearedLine - 1);
+	}
+
+	tetris->GameInfo.Score += SCORE_PRESET[clearedLine] * tetris->GameInfo.Stage;
+	tetris->GameInfo.Score += COMBO_SCORE * tetris->GameInfo.Combo;
 }
