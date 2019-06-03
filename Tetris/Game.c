@@ -9,85 +9,135 @@
 #include "TickTimer.h"
 #include "Point.h"
 
+#define GAME_UPDATE_SPEED 100
+#define INPUT_UPDATE_SPEED 1
+#define WALLKICK_ENABLE true
+
+void Initialize();
+void SetOptions(int argc, char* argv[]);
+
+void UpdateGame();
+
+void UpdateInputAsync();
+//void* UpdateSwitchInput(void* inputManager);
+
+void DrawMap();
+void DrawNextBlock();
 void UpdateDevice();
-unsigned _stdcall Thread_Device(void* arg);
+unsigned _stdcall UpdateSwitchInput(void* arg);
 
-void GetUserInput(InputCollection* inputCollection);
+// Tetris
+TetrisGame Tetris;
+TickTimer GameUpdateTimer;
 
+// Input
+InputManager Input;
+TickTimer InputUpdateTimer;
+//pthread_t InputUpdateThread;
+
+// Device
 unsigned char DotMatrix[10][7];
 
-int main()
+int main(int argc, char* argv[])
 {
-	TickTimer updateTimer;
-	TetrisGame tetris;
-	InputCollection userInput;
-	bool map[MAP_ROW][MAP_COL];
-	int row, col;
-
 	OpenDevice();
 
-	InitializeTetris(&tetris);
-	InitializeTickTimer(&updateTimer, 100);
+	Initialize();
+	SetOptions(argc, argv);
 
-	RunTetris(&tetris);
-
-	_beginthreadex(NULL, 0, Thread_Device, 0, 0, NULL);
-
-	while (true)
-	{
-		WaitNextTick(&updateTimer);
-
-		GetUserInput(&userInput);
-		ReadUserInput(&tetris, &userInput);
-
-		UpdateTetris(&tetris);
-
-		RenderToBoolMap(&tetris.GameMap, map);
-
-		for (row = 0; row < MAP_ROW; row++)
-		{
-			for (col = 0; col < MAP_COL; col++)
-			{
-				DotMatrix[row][col] = map[row][col] == true ? 1 : 0;
-			}
-		}
-		SetDotMatrix(DotMatrix);
-	}
+	RunTetris(&Tetris);
+	UpdateInputAsync();
+	UpdateGame();
 
 	CloseDevice();
 
 	return 0;
 }
 
-void GetUserInput(InputCollection* inputCollection)
+void Initialize()
 {
-	int index;
-	unsigned char switchStatus[INPUT_SOURCE_NUMBER];
+	InitializeTetris(&Tetris);
+	InitializeTickTimer(&GameUpdateTimer, GAME_UPDATE_SPEED);
 
-	GetSwitchStatus(switchStatus);
+	InitializeInputManager(&Input);
+	InitializeTickTimer(&InputUpdateTimer, INPUT_UPDATE_SPEED);
+	//InputUpdateThread = pthread_create(&InputUpdateThread, NULL, UpdateSwitchInput, NULL);
+	_beginthreadex(NULL, 0, UpdateSwitchInput, 0, 0, NULL);
+}
 
-	for (index = 0; index < INPUT_SOURCE_NUMBER; index++)
+void SetOptions(int argc, char* argv[])
+{
+	Tetris.GameMap.AllowWallKick = WALLKICK_ENABLE;
+}
+
+void UpdateGame()
+{
+	InputInfo inputInfo;
+
+	while (true)
 	{
-		inputCollection->Input[index].Command = index;
+		WaitNextTick(&GameUpdateTimer);
 
-		if (switchStatus[index] > 0)
+		inputInfo = Dequeue(&Input.InputQueue);
+		InputTest(&Tetris, &inputInfo);
+
+		UpdateTetris(&Tetris);
+
+		DrawMap();
+		DrawNextBlock();
+		UpdateDevice();
+
+		if (IsTetrisGameOver(&Tetris) == true)
 		{
-			inputCollection->Input[index].Type = InputType_Click;
-		}
-		else
-		{
-			inputCollection->Input[index].Type = InputType_None;
+			break;
 		}
 	}
 }
 
-unsigned _stdcall Thread_Device(void* arg)
+void UpdateInputAsync()
 {
-	while (true)
+	int result = 0;
+	//pthread_join(InputUpdateThread, (void**)& result);
+}
+
+//void* UpdateSwitchInput(void* unused)
+//{
+//	unsigned char switchStatus[PUSH_SWITCH_NUMBER];
+//	memset(switchStatus, 0, sizeof(switchStatus));
+//
+//	while (true)
+//	{
+//		WaitNextTick(&InputUpdateTimer);
+//		GetSwitchStatus(switchStatus);
+//		HandleInput(&Input, switchStatus);
+//	}
+//}
+
+void DrawMap()
+{
+	int row, col;
+	bool renderedMap[MAP_ROW][MAP_COL];
+	unsigned char convertedMap[MAP_ROW][MAP_COL];
+
+	RenderToBoolMap(&Tetris.GameMap, renderedMap);
+
+	for (row = 0; row < MAP_ROW; row++)
 	{
-		Sleep(10);
-		UpdateDevice();
+		for (col = 0; col < MAP_COL; col++)
+		{
+			convertedMap[row][col] = renderedMap[row][col] == true ? 1 : 0;
+		}
 	}
+
+	SetDotMatrix(convertedMap);
+}
+
+void DrawNextBlock()
+{
+	unsigned char renderedNextBlock = 0;
+
+	RenderNextBlock(&Tetris.GameMap, &renderedNextBlock);
+	SetLED(renderedNextBlock);
 }
 
 void UpdateDevice()
@@ -147,4 +197,17 @@ void UpdateDevice()
 	}
 	printf("\n");
 	printf("Update Counter: '%d'\n", UPDATE_COUNTER++);
+}
+
+unsigned _stdcall UpdateSwitchInput(void* arg)
+{
+	unsigned char switchStatus[PUSH_SWITCH_NUMBER];
+	memset(switchStatus, 0, sizeof(switchStatus));
+
+	while (true)
+	{
+		WaitNextTick(&InputUpdateTimer);
+		GetSwitchStatus(switchStatus);
+		HandleInput(&Input, switchStatus);
+	}
 }
