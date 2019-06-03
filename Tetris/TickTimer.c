@@ -6,7 +6,7 @@
 void InitializeTickTimer(TickTimer* timer, unsigned int delay)
 {
 	timer->Delay = delay;
-	timer->LastTick = GetTickCount_Tetris();
+	timer->LastTick = GetTickCount_Windows();
 }
 
 void WaitNextTick(TickTimer* timer)
@@ -22,13 +22,13 @@ void WaitNextTick(TickTimer* timer)
 
 void RestartTimer(TickTimer* timer)
 {
-	timer->LastTick = GetTickCount_Tetris();
+	timer->LastTick = GetTickCount_Windows();
 }
 
 bool IsReady(TickTimer* timer)
 {
 	static long CurrentTick;
-	CurrentTick = GetTickCount_Tetris();
+	CurrentTick = GetTickCount_Windows();
 
 	if (CurrentTick - timer->LastTick >= timer->Delay)
 	{
@@ -39,7 +39,7 @@ bool IsReady(TickTimer* timer)
 	return false;
 }
 
-long GetTickCount_Tetris()
+long GetTickCount_Windows()
 {
 	/*struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
