@@ -25,7 +25,7 @@ void ClearMap(TetrisMap* map)
 	memset(map->Map, 0, MAP_SIZE);
 }
 
-void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
+void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL])
 {
 	int row, col;
 
@@ -46,9 +46,14 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
 	{
 		for (col = 0; col < BLOCK_SHAPE_COL; col++)
 		{
-			if (map->CurrentBlock.Shape[row][col] != BlockTile_Empty)
+			if (map->CurrentBlock.Shape[row][col] == BlockTile_Empty)
 			{
-				renderedMap[row + map->CurrentBlock.Position.y][col + map->CurrentBlock.Position.x] = map->CurrentBlock.Shape[row][col];
+				continue;
+			}
+
+			if (map->CurrentBlock.Shape[row][col] != 0)
+			{
+				renderedMap[row + map->CurrentBlock.Position.y][col + map->CurrentBlock.Position.x] = map->CurrentBlock.Tile;
 			}
 		}
 	}
@@ -56,8 +61,8 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
 
 void RenderNextBlock(TetrisMap* map, unsigned char* renderedNextBlock)
 {
-	const int LED_ROW = 2;
-	const int LED_COL = 4;
+	const static double LED_ROW = 2;
+	const static double LED_COL = 4;
 	int row, col;
 	unsigned char renderedResult;
 
