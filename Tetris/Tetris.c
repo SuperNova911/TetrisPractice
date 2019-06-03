@@ -9,15 +9,33 @@
 #include "Point.h"
 #include "Tetris.h"
 
+const static unsigned int GRAVITY_DELAY_PRESET[TETRIS_MAX_LEVEL] =
+{
+	1300, 1200, 1000, 800, 600, 400, 300, 200, 100
+};
+const static unsigned int LOCK_DELAY_PRESET[TETRIS_MAX_LEVEL] =
+{
+	1500, 1500, 1500, 1000, 1000, 500, 500, 500, 500
+};
+
 void InitializeTetris(TetrisGame* tetris)
 {
 	InitializeMap(&tetris->GameMap);
 
-	InitializeTickTimer(&tetris->GameCore.GravityTimer, 1000);
-	InitializeTickTimer(&tetris->GameCore.LockTimer, 1500);
-	tetris->GameCore.WaitForLock = false;
-
+	tetris->GameInfo.Level = 1;
+	tetris->GameInfo.Score = 0;
+	tetris->GameInfo.TotalClearedLine = 0;
+	tetris->GameInfo.Combo = -1;
+	tetris->GameInfo.Gravity = 1000;
+	tetris->GameInfo.LockDelay = 1500;
+	tetris->GameInfo.SpawnDelay = 500;
 	tetris->GameInfo.IsRunning = false;
+	tetris->GameInfo.IsGameOver = false;
+
+	InitializeTickTimer(&tetris->GameCore.GravityTimer, tetris->GameInfo.Gravity);
+	InitializeTickTimer(&tetris->GameCore.LockTimer, tetris->GameInfo.LockDelay);
+	InitializeTickTimer(&tetris->GameCore.SpawnTimer, tetris->GameInfo.SpawnDelay);
+	tetris->GameCore.WaitForLock = false;
 
 	InitializeBlockBag(&tetris->BlockBag);
 
@@ -34,6 +52,11 @@ void RunTetris(TetrisGame* tetris)
 	}
 
 	tetris->GameInfo.IsRunning = true;
+}
+
+bool IsTetrisGameOver(TetrisGame* tetris)
+{
+	return tetris->GameInfo.IsGameOver;
 }
 
 void UpdateTetris(TetrisGame* tetris)
@@ -55,9 +78,18 @@ void UpdateTetris(TetrisGame* tetris)
 	}
 	else
 	{
-		newBlock = GetNextBlock(&tetris->BlockBag);
-		SpawnBlock(&tetris->GameMap, newBlock);
-		RestartTimer(&tetris->GameCore.GravityTimer);
+		if (IsReady(&tetris->GameCore.SpawnTimer) == true)
+		{
+			tetris->GameInfo.IsGameOver = !SpawnBlock(&tetris->GameMap, tetris->GameMap.NextBlock);
+			newBlock = GetNextBlock(&tetris->BlockBag);
+			PrepareNextBlock(&tetris->GameMap, newBlock);
+			RestartTimer(&tetris->GameCore.GravityTimer);
+		}
+	}
+
+	if (tetris->GameInfo.IsGameOver == true)
+	{
+		printf("Stage: '%d', Score: '%d'\n", tetris->GameInfo.Level, tetris->GameInfo.Score);
 	}
 }
 
@@ -71,19 +103,37 @@ void UpdateGravity(TetrisGame* tetris)
 
 void UpdateLock(TetrisGame* tetris)
 {
-	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true &&
-		IsReady(&tetris->GameCore.LockTimer) == true)
+	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
 	{
-		Lock(tetris);
+		if (IsReady(&tetris->GameCore.LockTimer) == true)
+		{
+			Lock(tetris);
+		}
+	}
+	else
+	{
+		tetris->GameCore.WaitForLock = false;
 	}
 }
 
 void Lock(TetrisGame* tetris)
 {
+	int clearedLine;
+
 	AddBlock(&tetris->GameMap, &tetris->GameMap.CurrentBlock);
 	tetris->GameMap.CurrentBlock.IsValid = false;
 	tetris->GameCore.WaitForLock = false;
-	ClearFullLine(&tetris->GameMap);
+	RestartTimer(&tetris->GameCore.SpawnTimer);
+
+	clearedLine = ClearFullLine(&tetris->GameMap);
+	if (clearedLine < 0 || clearedLine > 4)
+	{
+		printf("Lock: Invalid clearedLine, line: '%d'\n", clearedLine);
+		return;
+	}
+
+	LevelUp(tetris, clearedLine);
+	AddScore(tetris, clearedLine);
 }
 
 void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
@@ -135,6 +185,11 @@ void HandleUserInput(TetrisGame* tetris)
 	}
 
 	tetris->UserInput.Type = InputType_None;
+}
+
+void InputTest(TetrisGame* tetris, InputInfo* inputInfo)
+{
+	memcpy(&tetris->UserInput, inputInfo, sizeof(InputInfo));
 }
 
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction)
@@ -192,4 +247,56 @@ void ControlBlockDropDown(TetrisGame* tetris)
 		RestartTimer(&tetris->GameCore.LockTimer);
 		tetris->GameCore.WaitForLock = true;
 	}
+}
+
+void LevelUp(TetrisGame* tetris, unsigned int clearedLine)
+{
+	unsigned int newLevel;
+
+	if (clearedLine == 0)
+	{
+		return;
+	}
+
+	tetris->GameInfo.TotalClearedLine += clearedLine;
+
+	if (tetris->GameInfo.Level == TETRIS_MAX_LEVEL)
+	{
+		return;
+	}
+
+	newLevel = (tetris->GameInfo.TotalClearedLine / 10) + 1;
+	if (newLevel > TETRIS_MAX_LEVEL)
+	{
+		newLevel = TETRIS_MAX_LEVEL;
+	}
+
+	if (newLevel > tetris->GameInfo.Level)
+	{
+		tetris->GameInfo.Level = newLevel;
+		InitializeTickTimer(&tetris->GameCore.GravityTimer, GRAVITY_DELAY_PRESET[newLevel]);
+		InitializeTickTimer(&tetris->GameCore.LockTimer, LOCK_DELAY_PRESET[newLevel]);
+	}
+}
+
+void AddScore(TetrisGame* tetris, unsigned int clearedLine)
+{
+	const unsigned int SCORE_PRESET[5] = { 0, 40, 100, 300, 1200 };
+	const unsigned int COMBO_SCORE = 50;
+
+	if (clearedLine == 0)
+	{
+		tetris->GameInfo.Combo = -1;
+	}
+	else
+	{
+		tetris->GameInfo.Combo += (clearedLine - 1);
+	}
+
+    if (tetris->GameInfo.Combo > 0)
+    {
+        tetris->GameInfo.Score += COMBO_SCORE * tetris->GameInfo.Combo;
+    }
+
+	tetris->GameInfo.Score += SCORE_PRESET[clearedLine] * tetris->GameInfo.Level;
 }
