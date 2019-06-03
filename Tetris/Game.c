@@ -5,6 +5,7 @@
 #include <string.h>
 #include <Windows.h>
 #include "DeviceManager.h"
+#include "DotAnimator.h"
 #include "Tetris.h"
 #include "TickTimer.h"
 #include "Point.h"
@@ -21,7 +22,7 @@ void UpdateGame();
 void UpdateInputAsync();
 //void* UpdateSwitchInput(void* inputManager);
 
-void DrawMap();
+void DrawMap(unsigned char map[][MAP_COL]);
 void DrawNextBlock();
 void UpdateDevice();
 unsigned _stdcall UpdateSwitchInput(void* arg);
@@ -29,6 +30,7 @@ unsigned _stdcall UpdateSwitchInput(void* arg);
 // Tetris
 TetrisGame Tetris;
 TickTimer GameUpdateTimer;
+unsigned int CurrentLevel;
 
 // Input
 InputManager Input;
@@ -46,7 +48,10 @@ int main(int argc, char* argv[])
 	SetOptions(argc, argv);
 
 	RunTetris(&Tetris);
-	UpdateInputAsync();
+	RunTimer(&GameUpdateTimer);
+	RunTimer(&InputUpdateTimer);
+
+	//UpdateInputAsync();
 	UpdateGame();
 
 	CloseDevice();
@@ -58,6 +63,7 @@ void Initialize()
 {
 	InitializeTetris(&Tetris);
 	InitializeTickTimer(&GameUpdateTimer, GAME_UPDATE_SPEED);
+	CurrentLevel = 0;
 
 	InitializeInputManager(&Input);
 	InitializeTickTimer(&InputUpdateTimer, INPUT_UPDATE_SPEED);
@@ -76,14 +82,19 @@ void UpdateGame()
 
 	while (true)
 	{
-		WaitNextTick(&GameUpdateTimer);
+		//WaitNextTick(&GameUpdateTimer);
+		if (IsTimerReady(&GameUpdateTimer) == false)
+		{
+			continue;
+		}
 
 		inputInfo = Dequeue(&Input.InputQueue);
 		InputTest(&Tetris, &inputInfo);
 
 		UpdateTetris(&Tetris);
 
-		DrawMap();
+		RenderTetrisMap(&Tetris, DotMatrix);
+		DrawMap(DotMatrix);
 		DrawNextBlock();
 		UpdateDevice();
 
@@ -113,23 +124,9 @@ void UpdateInputAsync()
 //	}
 //}
 
-void DrawMap()
+void DrawMap(unsigned char map[][MAP_COL])
 {
-	int row, col;
-	bool renderedMap[MAP_ROW][MAP_COL];
-	unsigned char convertedMap[MAP_ROW][MAP_COL];
-
-	RenderToBoolMap(&Tetris.GameMap, renderedMap);
-
-	for (row = 0; row < MAP_ROW; row++)
-	{
-		for (col = 0; col < MAP_COL; col++)
-		{
-			convertedMap[row][col] = renderedMap[row][col] == true ? 1 : 0;
-		}
-	}
-
-	SetDotMatrix(convertedMap);
+	SetDotMatrix(map);
 }
 
 void DrawNextBlock()
@@ -142,8 +139,8 @@ void DrawNextBlock()
 
 void UpdateDevice()
 {
-	static const char *T = "¡Ü";
-	static const char *F = "¡Û";
+	static const char *T = "â—";
+	static const char *F = "â—‹";
 	static int UPDATE_COUNTER = 0;
 
 	unsigned char led = GetLED();
@@ -206,7 +203,11 @@ unsigned _stdcall UpdateSwitchInput(void* arg)
 
 	while (true)
 	{
-		WaitNextTick(&InputUpdateTimer);
+		if (IsTimerReady(&InputUpdateTimer) == false)
+		{
+			continue;
+		}
+
 		GetSwitchStatus(switchStatus);
 		HandleInput(&Input, switchStatus);
 	}
