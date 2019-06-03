@@ -5,7 +5,7 @@
 #include <Windows.h>
 
 #include "DeviceManager.h"
-#include "dot_matrix_font.h"
+#include "DotAnimator.h"
 
 int LEDFD;
 int PushSwitchFD;
@@ -114,13 +114,13 @@ bool SetDotMatrixByNumber(int value)
     int row;
 	for (row = 0; row < 10; row++)
 	{
-		DotMatrix_Value[row][0] = (int)dot_matrix_font[value][row] & 0x1 << 6 ? 1 : 0;
-		DotMatrix_Value[row][1] = (int)dot_matrix_font[value][row] & 0x1 << 5 ? 1 : 0;
-		DotMatrix_Value[row][2] = (int)dot_matrix_font[value][row] & 0x1 << 4 ? 1 : 0;
-		DotMatrix_Value[row][3] = (int)dot_matrix_font[value][row] & 0x1 << 3 ? 1 : 0;
-		DotMatrix_Value[row][4] = (int)dot_matrix_font[value][row] & 0x1 << 2 ? 1 : 0;
-		DotMatrix_Value[row][5] = (int)dot_matrix_font[value][row] & 0x1 << 1 ? 1 : 0;
-		DotMatrix_Value[row][6] = (int)dot_matrix_font[value][row] & 0x1 << 0 ? 1 : 0;
+		DotMatrix_Value[row][0] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 6 ? 1 : 0;
+		DotMatrix_Value[row][1] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 5 ? 1 : 0;
+		DotMatrix_Value[row][2] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 4 ? 1 : 0;
+		DotMatrix_Value[row][3] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 3 ? 1 : 0;
+		DotMatrix_Value[row][4] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 2 ? 1 : 0;
+		DotMatrix_Value[row][5] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 1 ? 1 : 0;
+		DotMatrix_Value[row][6] = (int)DOT_BIG_NUMBER_FONT[value][row] & 0x1 << 0 ? 1 : 0;
 	}
 
 	return true;
