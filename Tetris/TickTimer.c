@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stdio.h>
 //#include <time.h>
 #include <Windows.h>
 #include "TickTimer.h"
@@ -7,30 +8,68 @@ void InitializeTickTimer(TickTimer* timer, unsigned int delay)
 {
 	timer->Delay = delay;
 	timer->LastTick = GetTickCount_Windows();
+	timer->RemainTick = 0;
+	timer->IsRunning = false;
 }
 
-void WaitNextTick(TickTimer* timer)
+void ChangeDelay(TickTimer* timer, unsigned int delay)
 {
-	while (true)
+	timer->Delay = delay;
+}
+
+void RunTimer(TickTimer* timer)
+{
+	if (timer->IsRunning == true)
 	{
-		if (IsReady(timer) == true)
-		{
-			return;
-		}
+		printf("RunTimer: Timer is already running\n");
+		return;
 	}
+
+	timer->IsRunning = true;
+}
+
+void PauseTimer(TickTimer* timer)
+{
+	if (timer->IsRunning == false)
+	{
+		printf("PauseTimer: Timer is already paused\n");
+		return;
+	}
+
+	timer->RemainTick = GetTickCount_Windows() - timer->LastTick;
+	timer->IsRunning = false;
+}
+
+void ResumeTimer(TickTimer* timer)
+{
+	if (timer->IsRunning == true)
+	{
+		printf("ResumeTimer: Timer is already running\n");
+		return;
+	}
+
+	timer->LastTick = GetTickCount_Windows() - timer->RemainTick;
+	timer->IsRunning = true;
 }
 
 void RestartTimer(TickTimer* timer)
 {
 	timer->LastTick = GetTickCount_Windows();
+	timer->IsRunning = true;
 }
 
-bool IsReady(TickTimer* timer)
+bool IsTimerReady(TickTimer* timer)
 {
 	static long CurrentTick;
+
+	if (timer->IsRunning == false)
+	{
+		return false;
+	}
+
 	CurrentTick = GetTickCount_Windows();
 
-	if (CurrentTick - timer->LastTick >= timer->Delay)
+	if (CurrentTick - timer->LastTick >= (long)timer->Delay)
 	{
 		timer->LastTick = CurrentTick;
 		return true;
