@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,8 @@ void InitializeMap(TetrisMap* map)
 {
 	ClearMap(map);
 	InitializeBlock(&map->CurrentBlock);
+	InitializeBlock(&map->NextBlock);
+	InitializeBlock(&map->HoldBlock);
 	map->RenderGhostBlock = false;
 	map->AllowWallKick = true;
 }
@@ -51,9 +54,28 @@ void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL])
 	}
 }
 
-void RenderGhostBlock(TetrisMap* map, bool renderGhostBlock)
+void RenderNextBlock(TetrisMap* map, unsigned char* renderedNextBlock)
 {
-	map->RenderGhostBlock = renderGhostBlock;
+	const int LED_ROW = 2;
+	const int LED_COL = 4;
+	int row, col;
+	unsigned char renderedResult;
+
+	renderedResult = 0;
+	for (row = 0; row < BLOCK_SHAPE_ROW && row < LED_ROW; row++)
+	{
+		for (col = 0; col < BLOCK_SHAPE_COL && col < LED_COL; col++)
+		{
+			if (map->NextBlock.Shape[row][col] == 0)
+			{
+				continue;
+			}
+
+			renderedResult += (unsigned char)pow(2, ((LED_ROW - row - 1) * 4) + (LED_COL - col - 1));
+		}
+	}
+
+	*renderedNextBlock = renderedResult;
 }
 
 bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition)
@@ -274,13 +296,18 @@ int ClearFullLine(TetrisMap* map)
 	return clearedLine;
 }
 
+void PrepareNextBlock(TetrisMap* map, Block block)
+{
+	map->NextBlock = block;
+}
+
 bool SpawnBlock(TetrisMap* map, Block block)
 {
 	if (map->CurrentBlock.IsValid == true)
 	{
 		printf("SpawnBlock: Map already has valid Block, Block: (Tile: '%d', Position: (x: '%d', y: '%d'))\n", 
 			map->CurrentBlock.Tile, map->CurrentBlock.Position.x, map->CurrentBlock.Position.y);
-		return false;
+		return true;
 	}
 
 	block.Position = SPAWN_POSITION;
