@@ -26,8 +26,8 @@ void InitializeTetris(TetrisGame* tetris)
 	tetris->GameInfo.Score = 0;
 	tetris->GameInfo.TotalClearedLine = 0;
 	tetris->GameInfo.Combo = -1;
-	tetris->GameInfo.Gravity = 1000;
-	tetris->GameInfo.LockDelay = 1500;
+	tetris->GameInfo.Gravity = GRAVITY_DELAY_PRESET[tetris->GameInfo.Level - 1];
+	tetris->GameInfo.LockDelay = LOCK_DELAY_PRESET[tetris->GameInfo.Level - 1];
 	tetris->GameInfo.SpawnDelay = 500;
 	tetris->GameInfo.IsRunning = false;
 	tetris->GameInfo.IsGameOver = false;
@@ -274,8 +274,8 @@ void LevelUp(TetrisGame* tetris, unsigned int clearedLine)
 	if (newLevel > tetris->GameInfo.Level)
 	{
 		tetris->GameInfo.Level = newLevel;
-		InitializeTickTimer(&tetris->GameCore.GravityTimer, GRAVITY_DELAY_PRESET[newLevel]);
-		InitializeTickTimer(&tetris->GameCore.LockTimer, LOCK_DELAY_PRESET[newLevel]);
+		InitializeTickTimer(&tetris->GameCore.GravityTimer, GRAVITY_DELAY_PRESET[newLevel - 1]);
+		InitializeTickTimer(&tetris->GameCore.LockTimer, LOCK_DELAY_PRESET[newLevel - 1]);
 	}
 }
 
