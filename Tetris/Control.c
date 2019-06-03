@@ -94,14 +94,15 @@ void InitializeInputManager(InputManager* manager)
 void HandleInput(InputManager* manager, unsigned char inputData[INPUT_SOURCE_NUMBER])
 {
 	int index;
+	int kappa;
 
 	for (index = 0; index < INPUT_SOURCE_NUMBER; index++)
 	{
-		if (inputData == 0)
+		if (inputData[index] == 0)
 		{
 			if (manager->InputHistory[index] != 0)
 			{
-				Enqueue(&manager->InputQueue, GenerateInputInfo(index, InputType_Click));
+				manager->Delay[index] = GetTickCount_Windows();
 				manager->InputHistory[index] = 0;
 			}
 		}
@@ -109,7 +110,13 @@ void HandleInput(InputManager* manager, unsigned char inputData[INPUT_SOURCE_NUM
 		{
 			if (manager->InputHistory[index] == 0)
 			{
-				manager->InputHistory[index] = GetTickCount_Tetris();
+
+				if ((kappa = GetTickCount_Windows() - manager->Delay[index]) < 100)
+				{
+					continue;
+				}
+				Enqueue(&manager->InputQueue, GenerateInputInfo(index, InputType_Click));
+				manager->InputHistory[index] = GetTickCount_Windows();
 			}
 			else
 			{
@@ -122,4 +129,5 @@ void HandleInput(InputManager* manager, unsigned char inputData[INPUT_SOURCE_NUM
 void ClearInputHistory(InputManager* manager)
 {
 	memset(manager->InputHistory, 0, sizeof(long) * INPUT_SOURCE_NUMBER);
+	memset(manager->Delay, 0, sizeof(long) * INPUT_SOURCE_NUMBER);
 }
