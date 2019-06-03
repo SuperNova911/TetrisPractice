@@ -51,7 +51,46 @@ void RunTetris(TetrisGame* tetris)
 		return;
 	}
 
+	RunTimer(&tetris->GameCore.GravityTimer);
+	RunTimer(&tetris->GameCore.LockTimer);
+	RunTimer(&tetris->GameCore.SpawnTimer);
+
 	tetris->GameInfo.IsRunning = true;
+}
+
+void PauseTetris(TetrisGame* tetris)
+{
+	if (tetris->GameInfo.IsRunning == false)
+	{
+		printf("PauseTetris: Game is already paused\n");
+		return;
+	}
+
+	PauseTimer(&tetris->GameCore.GravityTimer);
+	PauseTimer(&tetris->GameCore.LockTimer);
+	PauseTimer(&tetris->GameCore.SpawnTimer);
+
+	tetris->GameInfo.IsRunning = false;
+}
+
+void ResumeTetris(TetrisGame* tetris)
+{
+	if (tetris->GameInfo.IsRunning == true)
+	{
+		printf("ResumeTetris: Game is already running\n");
+		return;
+	}
+
+	ResumeTimer(&tetris->GameCore.GravityTimer);
+	ResumeTimer(&tetris->GameCore.LockTimer);
+	ResumeTimer(&tetris->GameCore.SpawnTimer);
+
+	tetris->GameInfo.IsRunning = true;
+}
+
+void RenderTetrisMap(TetrisGame* tetris, unsigned char renderedMap[][MAP_COL])
+{
+	RenderMap(&tetris->GameMap, renderedMap);
 }
 
 bool IsTetrisGameOver(TetrisGame* tetris)
@@ -63,10 +102,10 @@ void UpdateTetris(TetrisGame* tetris)
 {
 	Block newBlock;
 
+	HandleUserInput(tetris);
+
 	if (tetris->GameMap.CurrentBlock.IsValid == true)
 	{
-		HandleUserInput(tetris);
-
 		if (tetris->GameCore.WaitForLock == true)
 		{
 			UpdateLock(tetris);
@@ -78,7 +117,7 @@ void UpdateTetris(TetrisGame* tetris)
 	}
 	else
 	{
-		if (IsReady(&tetris->GameCore.SpawnTimer) == true)
+		if (IsTimerReady(&tetris->GameCore.SpawnTimer) == true)
 		{
 			tetris->GameInfo.IsGameOver = !SpawnBlock(&tetris->GameMap, tetris->GameMap.NextBlock);
 			newBlock = GetNextBlock(&tetris->BlockBag);
@@ -95,7 +134,7 @@ void UpdateTetris(TetrisGame* tetris)
 
 void UpdateGravity(TetrisGame* tetris)
 {
-	if (IsReady(&tetris->GameCore.GravityTimer) == true)
+	if (IsTimerReady(&tetris->GameCore.GravityTimer) == true)
 	{
 		ControlBlockMovement(tetris, Move_Down);
 	}
@@ -105,7 +144,7 @@ void UpdateLock(TetrisGame* tetris)
 {
 	if (IsLockAhead(&tetris->GameMap, &tetris->GameMap.CurrentBlock, &tetris->GameMap.CurrentBlock.Position) == true)
 	{
-		if (IsReady(&tetris->GameCore.LockTimer) == true)
+		if (IsTimerReady(&tetris->GameCore.LockTimer) == true)
 		{
 			Lock(tetris);
 		}
@@ -157,30 +196,47 @@ void HandleUserInput(TetrisGame* tetris)
 		return;
 	}
 
+	if (tetris->GameMap.CurrentBlock.IsValid == true && tetris->GameInfo.IsRunning == true)
+	{
+		switch (tetris->UserInput.Command)
+		{
+		case Input_MoveUp:
+			ControlBlockMovement(tetris, Move_Up);
+			break;
+		case Input_MoveRight:
+			ControlBlockMovement(tetris, Move_Right);
+			break;
+		case Input_MoveDown:
+			ControlBlockMovement(tetris, Move_Down);
+			break;
+		case Input_MoveLeft:
+			ControlBlockMovement(tetris, Move_Left);
+			break;
+		case Input_RotateRight:
+			ControlBlockRotation(tetris, Rotate_Right);
+			break;
+		case Input_RotateLeft:
+			ControlBlockRotation(tetris, Rotate_Left);
+			break;
+		case Input_DropDown:
+			ControlBlockDropDown(tetris);
+			break;
+		}
+	}
+
 	switch (tetris->UserInput.Command)
 	{
-	case Input_MoveUp:
-		ControlBlockMovement(tetris, Move_Up);
+	case Input_Pause:
+		if (tetris->GameInfo.IsRunning == true)
+		{
+			PauseTetris(tetris);
+		}
+		else
+		{
+			ResumeTetris(tetris);
+		}
 		break;
-	case Input_MoveRight:
-		ControlBlockMovement(tetris, Move_Right);
-		break;
-	case Input_MoveDown:
-		ControlBlockMovement(tetris, Move_Down);
-		break;
-	case Input_MoveLeft:
-		ControlBlockMovement(tetris, Move_Left);
-		break;
-	case Input_RotateRight:
-		ControlBlockRotation(tetris, Rotate_Right);
-		break;
-	case Input_RotateLeft:
-		ControlBlockRotation(tetris, Rotate_Left);
-		break;
-	case Input_DropDown:
-		ControlBlockDropDown(tetris);
-		break;
-	default:
+	case Input_Special:
 		break;
 	}
 

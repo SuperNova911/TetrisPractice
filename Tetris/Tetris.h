@@ -41,6 +41,9 @@ typedef struct TetrisGame_t
 
 void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
+void PauseTetris(TetrisGame* tetris);
+void ResumeTetris(TetrisGame* tetris);
+void RenderTetrisMap(TetrisGame* tetris, unsigned char renderedMap[][MAP_COL]);
 bool IsTetrisGameOver(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
