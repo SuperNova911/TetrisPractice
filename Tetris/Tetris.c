@@ -190,20 +190,6 @@ void Lock(TetrisGame* tetris)
 	AddScore(tetris, clearedLine);
 }
 
-void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection)
-{
-	int index;
-
-	for (index = 0; index < INPUT_SOURCE_NUMBER; index++)
-	{
-		if (InputCollection->Input[index].Type == InputType_Click)
-		{
-			tetris->UserInput = InputCollection->Input[index];
-			break;
-		}
-	}
-}
-
 void HandleUserInput(TetrisGame* tetris)
 {
 	if (tetris->UserInput.Type == InputType_None)
@@ -262,7 +248,7 @@ void HandleUserInput(TetrisGame* tetris)
 	tetris->UserInput.Type = InputType_None;
 }
 
-void InputTest(TetrisGame* tetris, InputInfo* inputInfo)
+void ReadUserInput(TetrisGame* tetris, InputInfo* inputInfo)
 {
 	memcpy(&tetris->UserInput, inputInfo, sizeof(InputInfo));
 }
@@ -361,7 +347,7 @@ void LevelUp(TetrisGame* tetris, unsigned int clearedLine)
 void AddScore(TetrisGame* tetris, unsigned int clearedLine)
 {
 	const unsigned int SCORE_PRESET[5] = { 0, 4, 10, 30, 120 };
-	const unsigned int COMBO_SCORE = 5;
+	const unsigned int COMBO_SCORE = 50;
 
 	if (clearedLine == 0)
 	{
