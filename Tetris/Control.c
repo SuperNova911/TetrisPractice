@@ -94,33 +94,45 @@ void InitializeInputManager(InputManager* manager)
 void HandleInput(InputManager* manager, unsigned char inputData[INPUT_SOURCE_NUMBER])
 {
 	int index;
-	int kappa;
+	int humanizer;
 
 	for (index = 0; index < INPUT_SOURCE_NUMBER; index++)
 	{
+		humanizer = GetTickCount_Windows() - manager->PushHistory[index];
+
+		// Release Key
 		if (inputData[index] == 0)
 		{
-			if (manager->InputHistory[index] != 0)
+			if (manager->PushHistory[index] != 0 && humanizer >= 100)
 			{
-				manager->Delay[index] = GetTickCount_Windows();
-				manager->InputHistory[index] = 0;
+				manager->PushHistory[index] = 0;
+				manager->InputMode[index] = InputType_None;
 			}
 		}
+		// Push Key
 		else
 		{
-			if (manager->InputHistory[index] == 0)
+			// Humanizer
+			if (manager->PushHistory[index] == 0 && humanizer >= 100)
 			{
-
-				if ((kappa = GetTickCount_Windows() - manager->Delay[index]) < 100)
-				{
-					continue;
-				}
-				Enqueue(&manager->InputQueue, GenerateInputInfo(index, InputType_Click));
-				manager->InputHistory[index] = GetTickCount_Windows();
+				manager->PushHistory[index] = GetTickCount_Windows();
+				manager->InputMode[index] = InputType_Click;
+				Enqueue(&manager->InputQueue, GenerateInputInfo(index, manager->InputMode[index]));
 			}
+			// Holding Key
 			else
 			{
-				continue;
+				if (manager->InputMode[index] == InputType_Click && humanizer >= 300)
+				{
+					manager->PushHistory[index] = GetTickCount_Windows();
+					manager->InputMode[index] = InputType_Hold;
+					Enqueue(&manager->InputQueue, GenerateInputInfo(index, manager->InputMode[index]));
+				}
+				else if (manager->InputMode[index] == InputType_Hold && humanizer >= 100)
+				{
+					manager->PushHistory[index] = GetTickCount_Windows();
+					Enqueue(&manager->InputQueue, GenerateInputInfo(index, manager->InputMode[index]));
+				}
 			}
 		}
 	}
@@ -128,6 +140,6 @@ void HandleInput(InputManager* manager, unsigned char inputData[INPUT_SOURCE_NUM
 
 void ClearInputHistory(InputManager* manager)
 {
-	memset(manager->InputHistory, 0, sizeof(long) * INPUT_SOURCE_NUMBER);
-	memset(manager->Delay, 0, sizeof(long) * INPUT_SOURCE_NUMBER);
+	memset(manager->PushHistory, 0, sizeof(long) * INPUT_SOURCE_NUMBER);
+	memset(manager->InputMode, 0, sizeof(InputType) * INPUT_SOURCE_NUMBER);
 }

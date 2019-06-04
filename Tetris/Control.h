@@ -50,8 +50,8 @@ bool IsQueueFull(InputInfoQueue* queue);
 
 typedef struct InputManager_t
 {
-	long InputHistory[INPUT_SOURCE_NUMBER];
-	long Delay[INPUT_SOURCE_NUMBER];
+	long PushHistory[INPUT_SOURCE_NUMBER];
+	InputType InputMode[INPUT_SOURCE_NUMBER];
 	InputInfoQueue InputQueue;
 } InputManager;
 

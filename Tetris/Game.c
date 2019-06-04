@@ -109,7 +109,7 @@ void UpdateGame()
 		}
 
 		inputInfo = Dequeue(&Input.InputQueue);
-		InputTest(&Tetris, &inputInfo);
+		ReadUserInput(&Tetris, &inputInfo);
 
 		UpdateTetris(&Tetris);
 
