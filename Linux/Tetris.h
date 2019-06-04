@@ -7,20 +7,25 @@
 #include "Point.h"
 #include "TickTimer.h"
 
+#define TETRIS_MAX_LEVEL 9
+
 typedef struct TetrisCore_t
 {
 	TickTimer GravityTimer;
 	TickTimer LockTimer;
+	TickTimer SpawnTimer;
 	bool WaitForLock;
 } TetrisCore;
 
 typedef struct TetrisInfo_t
 {
-	unsigned int Stage;
+	unsigned int Level;
 	unsigned int Score;
+	unsigned int TotalClearedLine;
 	int Combo;
 	unsigned int Gravity;
 	unsigned int LockDelay;
+	unsigned int SpawnDelay;
 	bool IsRunning;
 	bool IsGameOver;
 } TetrisInfo;
@@ -36,6 +41,9 @@ typedef struct TetrisGame_t
 
 void InitializeTetris(TetrisGame* tetris);
 void RunTetris(TetrisGame* tetris);
+void PauseTetris(TetrisGame* tetris);
+void ResumeTetris(TetrisGame* tetris);
+void RenderTetrisMap(TetrisGame* tetris, unsigned char renderedMap[][MAP_COL]);
 bool IsTetrisGameOver(TetrisGame* tetris);
 
 void UpdateTetris(TetrisGame* tetris);
@@ -51,4 +59,5 @@ void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
 void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);
 void ControlBlockDropDown(TetrisGame* tetris);
 
+void LevelUp(TetrisGame* tetris, unsigned int clearedLine);
 void AddScore(TetrisGame* tetris, unsigned int clearedLine);
