@@ -21,7 +21,7 @@ typedef struct TetrisMap_t
 void InitializeMap(TetrisMap* map);
 
 void ClearMap(TetrisMap* map);
-void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL]);
+void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL], bool renderCurrentBlock);
 void RenderNextBlock(TetrisMap* map, unsigned char* renderedNextBlock);
 
 bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition);
@@ -35,7 +35,7 @@ void ClearLine(TetrisMap* map, int row);
 int ClearFullLine(TetrisMap* map);
 
 void PrepareNextBlock(TetrisMap* map, Block block);
-bool SpawnBlock(TetrisMap* map, Block block);
+bool SpawnBlock(TetrisMap* map, Block* block);
 void SpawnGarbage(TetrisMap* map);
 
 bool AddBlock(TetrisMap* map, Block* block);
@@ -43,4 +43,5 @@ bool AddBlock(TetrisMap* map, Block* block);
 bool MoveBlock(TetrisMap* map, MoveDirection direction);
 bool RotateBlock(TetrisMap* map, RotateDirection direction);
 bool DropDownBlock(TetrisMap* map);
+Point GetSpawnPosition(TetrisMap* map, Block* block);
 Point GetDropDownPosition(TetrisMap* map, Block* block);
