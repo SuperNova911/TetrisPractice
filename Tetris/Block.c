@@ -15,6 +15,12 @@ bool Block_Shape_J[BLOCK_SHAPE_ROW][BLOCK_SHAPE_COL] =
 	{ 1, 1, 1 },
 	{ 0, 0, 0 },
 };
+bool Block_Shape_L[BLOCK_SHAPE_ROW][BLOCK_SHAPE_COL] =
+{
+	{ 0, 0, 1 },
+	{ 1, 1, 1 },
+	{ 0, 0, 0 },
+};
 bool Block_Shape_S[BLOCK_SHAPE_ROW][BLOCK_SHAPE_COL] =
 {
 	{ 1, 1, 0 },
@@ -108,6 +114,9 @@ void GetBlockShape(BlockTile tile, bool shape[][BLOCK_SHAPE_COL])
 		break;
 	case BlockTile_J:
 		matchShape = Block_Shape_J;
+		break;
+	case BlockTile_L:
+		matchShape = Block_Shape_L;
 		break;
 	case BlockTile_S:
 		matchShape = Block_Shape_S;
