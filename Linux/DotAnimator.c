@@ -45,7 +45,7 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 
 	{{ 1, 1, 1 },	// 3
 	{ 0, 0, 1 },
-	{ 0, 1, 1 },
+	{ 1, 1, 1 },
 	{ 0, 0, 1 },
 	{ 1, 1, 1 }},
 
@@ -103,7 +103,7 @@ void ShowLevel(unsigned char matrix[][DOT_MATRIX_COL], unsigned int level)
 	const static int NUMBER_X = 4;
 	const static int NUMBER_Y = 1;
 
-	for (row = 1; row <= 7; row++)
+	for (row = 1; row <= 6; row++)
 	{
 		memset(matrix[row], 0, sizeof(unsigned char) * DOT_MATRIX_COL);
 	}
