@@ -38,6 +38,7 @@ void InitializeTetris(TetrisGame* tetris)
 	tetris->GameCore.WaitForLock = false;
 
 	InitializeBlockBag(&tetris->BlockBag);
+    PrepareNextBlock(&tetris->GameMap, GetNextBlock(&tetris->BlockBag));
 
 	tetris->UserInput.Command = 0;
 	tetris->UserInput.Type = InputType_None;
@@ -221,6 +222,8 @@ void HandleUserInput(TetrisGame* tetris)
 		case Input_DropDown:
 			ControlBlockDropDown(tetris);
 			break;
+        default:
+            break;
 		}
 	}
 
@@ -238,6 +241,8 @@ void HandleUserInput(TetrisGame* tetris)
 		break;
 	case Input_Special:
 		break;
+    default:
+        break;
 	}
 
 	tetris->UserInput.Type = InputType_None;
@@ -330,8 +335,8 @@ void LevelUp(TetrisGame* tetris, unsigned int clearedLine)
 	if (newLevel > tetris->GameInfo.Level)
 	{
 		tetris->GameInfo.Level = newLevel;
-		InitializeTickTimer(&tetris->GameCore.GravityTimer, GRAVITY_DELAY_PRESET[newLevel - 1]);
-		InitializeTickTimer(&tetris->GameCore.LockTimer, LOCK_DELAY_PRESET[newLevel - 1]);
+		ChangeDelay(&tetris->GameCore.GravityTimer, GRAVITY_DELAY_PRESET[newLevel - 1]);
+	    ChangeDelay(&tetris->GameCore.LockTimer, LOCK_DELAY_PRESET[newLevel - 1]);
 	}
 }
 
