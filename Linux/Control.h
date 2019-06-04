@@ -7,7 +7,7 @@
 
 typedef enum InputCommand_e
 {
-	Input_Pause = 6, Input_DropDown = 7, Input_Special = 8,
+	Input_Special = 6, Input_DropDown = 7, Input_Pause = 8,
 	Input_MoveLeft = 3, Input_MoveDown = 4, Input_MoveRight = 5,
 	Input_RotateLeft = 0, Input_MoveUp = 1, Input_RotateRight = 2
 } InputCommand;
