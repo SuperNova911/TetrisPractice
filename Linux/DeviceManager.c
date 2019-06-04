@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "DeviceManager.h"
-#include "dot_matrix_font.h"
+#include "DotAnimator.h"
 
 int LEDFD;
 int PushSwitchFD;
@@ -160,7 +160,7 @@ bool SetDotMatrixByNumber(int value)
         return false;
     }
 
-    if (write(DotMatrixFD, dot_matrix_font[value], sizeof(dot_matrix_font[value])) != sizeof(dot_matrix_font[value]))
+    if (write(DotMatrixFD, DOT_BIG_NUMBER_FONT[value], sizeof(DOT_BIG_NUMBER_FONT[value])) != sizeof(DOT_BIG_NUMBER_FONT[value]))
     {
         printf("Failed to set DotMatrix, value: '%d'\n", value);
         return false;
@@ -176,10 +176,10 @@ void GetDotMatrix(unsigned char matrix[][DOT_MATRIX_COL])
 
 void ClearDotMatrix()
 {
-    write(DotMatrixFD, dot_matrix_full, sizeof(dot_matrix_blank));
+    write(DotMatrixFD, DOT_BLANK, sizeof(DOT_BLANK));
 }
 
 void SetAllDotMatrix()
 {
-    write(DotMatrixFD, dot_matrix_blank, sizeof(dot_matrix_full));
+    write(DotMatrixFD, DOT_FULL, sizeof(DOT_FULL));
 }
