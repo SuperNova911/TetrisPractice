@@ -21,7 +21,7 @@ typedef struct TetrisMap_t
 void InitializeMap(TetrisMap* map);
 
 void ClearMap(TetrisMap* map);
-void RenderToBoolMap(TetrisMap* map, bool renderedMap[][MAP_COL]);
+void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL]);
 void RenderNextBlock(TetrisMap* map, unsigned char* renderedNextBlock);
 
 bool IsOutOfMap(TetrisMap* map, Block* block, Point* targetPosition);
