@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include "Block.h"
 
-#define BLOCK_BAG_NUMBER 4
+#define BLOCK_BAG_NUMBER BLOCK_TILE_NUMBER
 #define BLOCK_BAG_SIZE (sizeof(BlockTile) * BLOCK_BAG_NUMBER)
 
 typedef struct TetrisBlockBag_t
