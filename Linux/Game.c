@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 // #include <Windows.h>
 #include "Control.h"
 #include "DeviceManager.h"
@@ -96,6 +97,30 @@ void UpdateGame()
 		UpdateTetris(&Tetris);
 
 		RenderTetrisMap(&Tetris, DotMatrix);
+
+        if (CurrentLevel < Tetris.GameInfo.Level)
+        {
+            CurrentLevel = Tetris.GameInfo.Level;
+
+            PauseTetris(&Tetris);
+            PauseTimer(&GameUpdateTimer);
+            PauseTimer(&InputUpdateTimer);
+
+            ShowLevel(DotMatrix, CurrentLevel);
+            DrawMap(DotMatrix);
+            usleep(1000000);
+            RenderTetrisMap(&Tetris, DotMatrix);
+            DrawMap(DotMatrix);
+            usleep(500000);
+            ShowLevel(DotMatrix, CurrentLevel);
+            DrawMap(DotMatrix);
+            usleep(500000);
+
+            ResumeTimer(&GameUpdateTimer);
+            ResumeTimer(&InputUpdateTimer);
+            ResumeTetris(&Tetris);
+        }
+
 		DrawMap(DotMatrix);
 		DrawNextBlock();
 		// UpdateDevice();
@@ -120,7 +145,11 @@ void* UpdateSwitchInput(void* unused)
 
     while (true)
     {
-        WaitNextTick(&InputUpdateTimer);
+        if (IsTimerReady(&InputUpdateTimer) == false)
+        {
+            continue;
+        }
+
         GetSwitchStatus(switchStatus);
         HandleInput(&Input, switchStatus);
     }
