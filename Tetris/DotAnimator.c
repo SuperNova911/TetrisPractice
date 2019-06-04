@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "DotAnimator.h"
+#include "TickTimer.h"
 
 const unsigned char DOT_BIG_NUMBER_FONT[10][10] = {
 	{ 0x3e,0x7f,0x63,0x73,0x73,0x6f,0x67,0x63,0x7f,0x3e },    // 0
@@ -45,7 +46,7 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 
 	{{ 1, 1, 1 },	// 3
 	{ 0, 0, 1 },
-	{ 0, 1, 1 },
+	{ 1, 1, 1 },
 	{ 0, 0, 1 },
 	{ 1, 1, 1 }},
 
@@ -68,10 +69,10 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 }},
 
 	{{ 1, 1, 1 },	// 7
-	{ 1, 0, 0 },
-	{ 1, 1, 1 },
+	{ 1, 0, 1 },
 	{ 0, 0, 1 },
-	{ 1, 1, 1 }},
+	{ 0, 0, 1 },
+	{ 0, 0, 1 }},
 
 	{{ 1, 1, 1 },	// 8
 	{ 1, 0, 1 },
@@ -86,7 +87,16 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 }},
 };
 
-const bool DOT_SMALL_ALPHABET_L_FONT[DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
+const bool DOT_SCORE_FONT[DOT_SCORE_FONT_ROW][DOT_SCORE_FONT_COL] =
+{
+	{ 0, 1, 1 ,1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0 ,1, 1, 1, 0, 0, 1, 1, 1, 1 },
+	{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0 },
+	{ 0, 1, 1, 0, 0 ,1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1 ,0 },
+	{ 0, 0 ,0 ,1 ,0 ,1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0 },
+	{ 1 ,1 ,1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1 },
+};
+
+const static bool DOT_SMALL_ALPHABET_L_FONT[DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 {
 	{ 1, 0, 0 },
 	{ 1, 0, 0 },
@@ -95,15 +105,35 @@ const bool DOT_SMALL_ALPHABET_L_FONT[DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 },
 };
 
-void ShowLevel(unsigned char matrix[][DOT_MATRIX_COL], unsigned int level)
+const static bool DOT_PAUSE_FONT[DOT_MATRIX_ROW][DOT_MATRIX_COL] =
+{
+	{ 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 1, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 0, 0, 1, 0 },
+	{ 0, 1, 0, 0, 0, 1, 0 },
+	{ 0, 1, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 },
+};
+
+void InitializeDotAnimator(DotAnimator* animator)
+{
+	InitializeTickTimer(&animator->BlinkTimer, BLINK_DELAY);
+	RunTimer(&animator->BlinkTimer);
+}
+
+void DrawLevel(DotAnimator* animator, unsigned char matrix[][DOT_MATRIX_COL], unsigned int level)
 {
 	int row, col;
 	const static int ALPHABET_X = 0;
-	const static int ALPHABET_Y = 1;
+	const static int ALPHABET_Y = 0;
 	const static int NUMBER_X = 4;
-	const static int NUMBER_Y = 1;
+	const static int NUMBER_Y = 0;
 
-	for (row = 1; row <= 7; row++)
+	for (row = 0; row <= 5; row++)
 	{
 		memset(matrix[row], 0, sizeof(unsigned char) * DOT_MATRIX_COL);
 	}
@@ -116,4 +146,31 @@ void ShowLevel(unsigned char matrix[][DOT_MATRIX_COL], unsigned int level)
 			matrix[row + NUMBER_Y][col + NUMBER_X] = DOT_SMALL_NUMBER_FONT[level][row][col];
 		}
 	}
+}
+
+void DrawPause(DotAnimator* animator, unsigned char matrix[][DOT_MATRIX_COL])
+{
+	int row, col;
+	const static int ALPHABET_X = 0;
+	const static int ALPHABET_Y = 0;
+	static bool blinker = false;
+
+	memset(matrix, 0, DOT_MATRIX_SIZE);
+
+	if (IsTimerReady(&animator->BlinkTimer) == true)
+	{
+		blinker = !blinker;
+	}
+
+	if (blinker == false)
+	{
+		return;
+	}
+
+	memcpy(matrix, DOT_PAUSE_FONT, DOT_MATRIX_SIZE);
+}
+
+void DrawScore(DotAnimator* animator, unsigned char matrix[][DOT_MATRIX_COL], unsigned int score)
+{
+
 }
