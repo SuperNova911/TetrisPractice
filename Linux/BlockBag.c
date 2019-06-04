@@ -7,8 +7,6 @@
 
 void InitializeBlockBag(TetrisBlockBag* bag)
 {
-	srand((unsigned)time(NULL));
-
 	ClearBlockBag(bag);
 }
 
@@ -17,6 +15,7 @@ void GenerateBlockBag(TetrisBlockBag* bag)
 	BlockTile randomTile;
 	bool existChecker[BLOCK_TILE_NUMBER];
 
+    srand((unsigned)time(NULL));
 	memset(existChecker, 0, sizeof(bool) * BLOCK_TILE_NUMBER);
 	ClearBlockBag(bag);
 
@@ -34,6 +33,7 @@ void GenerateBlockBag(TetrisBlockBag* bag)
 
 		if (IsBlockBagFull(bag) == true)
 		{
+            printf("%d %d %d %d\n", bag->Bag[0], bag->Bag[1], bag->Bag[2], bag->Bag[3]);
 			break;
 		}
 	}
