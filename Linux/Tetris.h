@@ -14,7 +14,10 @@ typedef struct TetrisCore_t
 	TickTimer GravityTimer;
 	TickTimer LockTimer;
 	TickTimer SpawnTimer;
+	TickTimer BlinkTimer;
 	bool WaitForLock;
+	bool RenderCurrentBlock;
+	bool EnableGravity;
 } TetrisCore;
 
 typedef struct TetrisInfo_t
@@ -26,6 +29,7 @@ typedef struct TetrisInfo_t
 	unsigned int Gravity;
 	unsigned int LockDelay;
 	unsigned int SpawnDelay;
+	unsigned int BlinkDelay;
 	bool IsRunning;
 	bool IsGameOver;
 } TetrisInfo;
@@ -51,9 +55,8 @@ void UpdateGravity(TetrisGame* tetris);
 void UpdateLock(TetrisGame* tetris);
 void Lock(TetrisGame* tetris);
 
-void ReadUserInput(TetrisGame* tetris, InputCollection* InputCollection);
 void HandleUserInput(TetrisGame* tetris);
-void InputTest(TetrisGame* tetirs, InputInfo* inputInfo);
+void ReadUserInput(TetrisGame* tetirs, InputInfo* inputInfo);
 
 void ControlBlockMovement(TetrisGame* tetris, MoveDirection direction);
 void ControlBlockRotation(TetrisGame* tetris, RotateDirection direction);

@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include "Point.h"
 
-#define BLOCK_TILE_NUMBER 4
+#define BLOCK_TILE_NUMBER 5
 #define BLOCK_DIRECTION_NUMBER 4
 #define MOVE_DIRECTION_NUMBER 4
 #define ROTATE_DIRECTION_NUMBER 2
@@ -13,7 +13,7 @@
 
 typedef enum BlockTile_e
 {
-	BlockTile_Empty, BlockTile_I, BlockTile_J, BlockTile_S, BlockTile_T
+	BlockTile_Empty, BlockTile_I, BlockTile_L, BlockTile_J, BlockTile_S, BlockTile_T
 } BlockTile;
 
 typedef enum BlockDirection_e

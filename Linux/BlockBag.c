@@ -33,7 +33,6 @@ void GenerateBlockBag(TetrisBlockBag* bag)
 
 		if (IsBlockBagFull(bag) == true)
 		{
-            printf("%d %d %d %d\n", bag->Bag[0], bag->Bag[1], bag->Bag[2], bag->Bag[3]);
 			break;
 		}
 	}

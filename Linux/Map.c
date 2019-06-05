@@ -8,7 +8,7 @@
 #include "Map.h"
 #include "Point.h"
 
-const Point SPAWN_POSITION = { MAP_COL / 2 - BLOCK_SHAPE_COL / 2, 0 };
+const static Point SPAWN_POSITION = { MAP_COL / 2 - BLOCK_SHAPE_COL / 2, -BLOCK_SHAPE_ROW };
 
 void InitializeMap(TetrisMap* map)
 {
@@ -25,7 +25,7 @@ void ClearMap(TetrisMap* map)
 	memset(map->Map, 0, MAP_SIZE);
 }
 
-void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL])
+void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL], bool renderCurrentBlock)
 {
 	int row, col;
 
@@ -37,7 +37,7 @@ void RenderMap(TetrisMap* map, unsigned char renderedMap[][MAP_COL])
 		}
 	}
 
-	if (map->CurrentBlock.IsValid == false)
+	if (map->CurrentBlock.IsValid == false || renderCurrentBlock == false)
 	{
 		return;
 	}
@@ -306,7 +306,7 @@ void PrepareNextBlock(TetrisMap* map, Block block)
 	map->NextBlock = block;
 }
 
-bool SpawnBlock(TetrisMap* map, Block block)
+bool SpawnBlock(TetrisMap* map, Block* block)
 {
 	if (map->CurrentBlock.IsValid == true)
 	{
@@ -315,16 +315,14 @@ bool SpawnBlock(TetrisMap* map, Block block)
 		return true;
 	}
 
-	block.Position = SPAWN_POSITION;
+	block->Position = GetSpawnPosition(map, block);
 
-	if (IsCollide(map, &block, &block.Position, true) == true)
+	if (IsCollide(map, block, &block->Position, true) == true)
 	{
-		// TODO: GameOver
-		printf("GameOver\n");
 		return false;
 	}
 
-	map->CurrentBlock = block;
+	map->CurrentBlock = *block;
 	map->CurrentBlock.IsValid = true;
 
 	return true;
@@ -349,10 +347,12 @@ bool AddBlock(TetrisMap* map, Block* block)
 	{
 		for (col = 0; col < BLOCK_SHAPE_COL; col++)
 		{
-			if (block->Shape[row][col] != 0)
+			if (block->Shape[row][col] == 0)
 			{
-				map->Map[block->Position.y + row][block->Position.x + col] = block->Tile;
+				continue;
 			}
+
+			map->Map[block->Position.y + row][block->Position.x + col] = block->Tile;
 		}
 	}
 
@@ -410,17 +410,24 @@ bool RotateBlock(TetrisMap* map, RotateDirection direction)
 
 	if (map->AllowWallKick == true && IsOutOfMap(map, &rotatedBlock, &rotatedBlock.Position) == true)
 	{
-		if (rotatedBlock.Position.x < MAP_COL / 2)
+		// Wall kick
+		if (rotatedBlock.Position.x == - 1)
 		{
 			rotatedBlock.Position.x++;
 		}
-		else
+		else if (rotatedBlock.Position.x + BLOCK_SHAPE_COL == MAP_COL + 1)
 		{
 			rotatedBlock.Position.x--;
 		}
+
+		// Ceiling kick
+		if (rotatedBlock.Position.y == - 1)
+		{
+			rotatedBlock.Position.y++;
+		}
 	}
 
-	if (IsCollide(map, &rotatedBlock, &rotatedBlock.Position, false) == true)
+	if (IsCollide(map, &rotatedBlock, &rotatedBlock.Position, true) == true)
 	{
 		return false;
 	}
@@ -451,6 +458,24 @@ bool DropDownBlock(TetrisMap* map)
 
 	map->CurrentBlock.Position = dropDownPosition;
 	return true;
+}
+
+Point GetSpawnPosition(TetrisMap* map, Block* block)
+{
+	int y;
+	Point spawnPosition = SPAWN_POSITION;
+
+	for (y = spawnPosition.y; y <= 0; y++)
+	{
+		spawnPosition.y = y;
+
+		if (IsOutOfMap(map, block, &spawnPosition) == false)
+		{
+			break;
+		}
+	}
+
+	return spawnPosition;
 }
 
 Point GetDropDownPosition(TetrisMap* map, Block* block)

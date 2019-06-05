@@ -68,10 +68,10 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 }},
 
 	{{ 1, 1, 1 },	// 7
-	{ 1, 0, 0 },
-	{ 1, 1, 1 },
+	{ 1, 0, 1 },
 	{ 0, 0, 1 },
-	{ 1, 1, 1 }},
+	{ 0, 0, 1 },
+	{ 0, 0, 1 }},
 
 	{{ 1, 1, 1 },	// 8
 	{ 1, 0, 1 },
@@ -86,6 +86,15 @@ const bool DOT_SMALL_NUMBER_FONT[10][DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 }},
 };
 
+const bool DOT_SCORE_FONT[DOT_SCORE_FONT_ROW][DOT_SCORE_FONT_COL] =
+{
+	{ 0, 1, 1 ,1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0 ,1, 1, 1, 0, 0, 1, 1, 1, 1 },
+	{ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0 },
+	{ 0, 1, 1, 0, 0 ,1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1 ,0 },
+	{ 0, 0 ,0 ,1 ,0 ,1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0 },
+	{ 1 ,1 ,1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1 },
+};
+
 const bool DOT_SMALL_ALPHABET_L_FONT[DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 {
 	{ 1, 0, 0 },
@@ -95,25 +104,16 @@ const bool DOT_SMALL_ALPHABET_L_FONT[DOT_SMALL_FONT_ROW][DOT_SMALL_FONT_COL] =
 	{ 1, 1, 1 },
 };
 
-void ShowLevel(unsigned char matrix[][DOT_MATRIX_COL], unsigned int level)
+const bool DOT_PAUSE_FONT[DOT_MATRIX_ROW][DOT_MATRIX_COL] =
 {
-	int row, col;
-	const static int ALPHABET_X = 0;
-	const static int ALPHABET_Y = 1;
-	const static int NUMBER_X = 4;
-	const static int NUMBER_Y = 1;
-
-	for (row = 1; row <= 6; row++)
-	{
-		memset(matrix[row], 0, sizeof(unsigned char) * DOT_MATRIX_COL);
-	}
-
-	for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
-	{
-		for (col = 0; col < DOT_SMALL_FONT_COL; col++)
-		{
-			matrix[row + ALPHABET_Y][col + ALPHABET_X] = DOT_SMALL_ALPHABET_L_FONT[row][col];
-			matrix[row + NUMBER_Y][col + NUMBER_X] = DOT_SMALL_NUMBER_FONT[level][row][col];
-		}
-	}
-}
+	{ 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 1, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 0, 0, 1, 0 },
+	{ 0, 1, 0, 0, 0, 1, 0 },
+	{ 0, 1, 1, 1, 1, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 1, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 },
+	{ 0, 0, 0, 0, 0, 0, 0 },
+};
