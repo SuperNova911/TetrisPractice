@@ -37,7 +37,7 @@ void DrawNextBlock();
 void DrawLevelUp(unsigned int level);
 void DrawPause();
 void DrawGameOver();
-void DrawFinalScore(unsigned int finalScore);
+void DrawFinalScore(unsigned int finalScore, unsigned int finalLevel);
 
 // Tetris
 TetrisGame Tetris;
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 	UpdateGame();
 
 	DrawGameOver();
-	DrawFinalScore(FinalScore);
+	DrawFinalScore(FinalScore, CurrentLevel);
 
 	CloseDevice();
 
@@ -115,22 +115,17 @@ void SetOptions(int argc, char* argv[])
 		switch (option)
 		{
 		case 0:
-			if (strcmp(gameOption[index].name, "no_wallkick") == 0)
+			if (strcmp(gameOption[optionIndex].name, "no_wallkick") == 0)
 			{
 				wallKickOption = false;
-				break;
 			}
-			else if (strcmp(gameOption[index].name, "no_gravity") == 0)
+			else if (strcmp(gameOption[optionIndex].name, "no_gravity") == 0)
 			{
 				gravityOption = false;
-				break;
 			}
-			printf("SetOptions: Invaild command-line argument, option: '%s'\n",
-				gameOption[index].name);
-			break;
+            break;
 		default:
-			printf("SetOptions: Invaild command-line argument, option: '%c'\n",
-				option);
+			printf("SetOptions: Invaild command-line argument\n");
 			break;
 		}
 	}
@@ -349,11 +344,23 @@ void DrawPause()
 
 void DrawGameOver()
 {
-	//int row, col;
-	//unsigned char matrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
-	//unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
+	int row;
+	unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
 
-	usleep(1000000);
+    usleep(500000);
+    for (row = DOT_MATRIX_ROW - 1; row >= 0; row--)
+    {
+        memcpy(DotMatrix[row], fullCol, sizeof(unsigned char) * DOT_MATRIX_COL);
+        DrawMap(DotMatrix);
+        usleep(150000);
+    }
+
+    for (row = 0; row < DOT_MATRIX_ROW; row++)
+    {
+        memset(DotMatrix[row], 0, sizeof(unsigned char) * DOT_MATRIX_COL);
+        DrawMap(DotMatrix);
+        usleep(150000);
+    }
 }
 
 int MakeNumberMatrix(bool* matrix[DOT_SMALL_FONT_ROW], int number)
@@ -387,7 +394,7 @@ int MakeNumberMatrix(bool* matrix[DOT_SMALL_FONT_ROW], int number)
 	return colLength;
 }
 
-void DrawFinalScore(unsigned int finalScore)
+void DrawFinalScore(unsigned int finalScore, unsigned int finalLevel)
 {
 	const static int ITERATION = 3;
 	int iterator;
@@ -399,6 +406,8 @@ void DrawFinalScore(unsigned int finalScore)
 
 	memset(DotMatrix, 0, DOT_MATRIX_SIZE);
 	scoreNumberColLength = MakeNumberMatrix(scoreNumberMatrix, finalScore);
+
+    SetLED((unsigned char)finalLevel);
 	
 	for (iterator = 0; iterator < ITERATION; iterator++)
 	{
