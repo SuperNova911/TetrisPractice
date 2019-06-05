@@ -8,6 +8,7 @@
 #define PUSH_SWITCH_NUMBER 9
 #define DOT_MATRIX_ROW 10
 #define DOT_MATRIX_COL 7
+#define DOT_MATRIX_SIZE (sizeof(unsigned char) * DOT_MATRIX_ROW * DOT_MATRIX_COL)
 
 bool OpenDevice();
 void CloseDevice();
