@@ -1,4 +1,4 @@
-﻿#include <math.h>
+#include <math.h>
 #include <process.h>
 //#include <pthread.h>
 #include <stdbool.h>
@@ -16,6 +16,7 @@
 
 #define GAME_UPDATE_SPEED 100
 #define INPUT_UPDATE_SPEED 1
+#define BLINK_DELAY 500
 #define WALLKICK_ENABLE true
 
 void Initialize();
@@ -28,10 +29,13 @@ void UpdateInputAsync();
 unsigned _stdcall UpdateSwitchInput(void* arg);
 
 void DrawMap(unsigned char map[][MAP_COL]);
-void DrawNextBlock();
-void DrawGameOver();
-void DrawFinalScore();
 void UpdateDevice();
+void DrawNextBlock();
+
+void DrawLevelUp(unsigned int level);
+void DrawPause();
+void DrawGameOver();
+void DrawFinalScore(unsigned int finalScore);
 
 // Tetris
 TetrisGame Tetris;
@@ -47,10 +51,8 @@ TickTimer InputUpdateTimer;
 // Device
 unsigned char DotMatrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
 
-// Animator
-DotAnimator Animator;
-bool AnimateLevel;
-bool AnimatePause;
+// Animation
+TickTimer BlinkTimer;
 
 int main(int argc, char* argv[])
 {
@@ -62,12 +64,13 @@ int main(int argc, char* argv[])
 	RunTetris(&Tetris);
 	RunTimer(&GameUpdateTimer);
 	RunTimer(&InputUpdateTimer);
+	RunTimer(&BlinkTimer);
 
 	UpdateInputAsync();
 	UpdateGame();
 
 	DrawGameOver();
-	DrawFinalScore();
+	DrawFinalScore(FinalScore);
 
 	CloseDevice();
 
@@ -76,19 +79,20 @@ int main(int argc, char* argv[])
 
 void Initialize()
 {
+	// Tetris
 	InitializeTetris(&Tetris);
 	InitializeTickTimer(&GameUpdateTimer, GAME_UPDATE_SPEED);
 	CurrentLevel = 0;
 	FinalScore = 0;
 
+	// Input
 	InitializeInputManager(&Input);
 	InitializeTickTimer(&InputUpdateTimer, INPUT_UPDATE_SPEED);
 	//InputUpdateThread = pthread_create(&InputUpdateThread, NULL, UpdateSwitchInput, NULL);
 	_beginthreadex(NULL, 0, UpdateSwitchInput, 0, 0, NULL);
 
-	AnimateLevel = false;
-	AnimatePause = false;
-	InitializeDotAnimator(&Animator);
+	// Animation
+	InitializeTickTimer(&BlinkTimer, BLINK_DELAY);
 }
 
 void SetOptions(int argc, char* argv[])
@@ -112,39 +116,17 @@ void UpdateGame()
 		ReadUserInput(&Tetris, &inputInfo);
 
 		UpdateTetris(&Tetris);
+		RenderTetrisMap(&Tetris, DotMatrix);
 
 		if (CurrentLevel < Tetris.GameInfo.Level)
 		{
 			CurrentLevel = Tetris.GameInfo.Level;
-			AnimateLevel = true;
-		}
-		AnimatePause = !Tetris.GameInfo.IsRunning;
-
-		RenderTetrisMap(&Tetris, DotMatrix);
-
-		if (AnimateLevel == true)
-		{
-			PauseTetris(&Tetris);
-			PauseTimer(&GameUpdateTimer);
-			PauseTimer(&InputUpdateTimer);
-
-			DrawLevel(&Animator, DotMatrix, CurrentLevel);
-			DrawMap(DotMatrix);
-			Sleep(1500);
-
-			ResumeTimer(&GameUpdateTimer);
-			ResumeTimer(&InputUpdateTimer);
-			ResumeTetris(&Tetris);
-
-			AnimateLevel = false;
-			continue;
+			DrawLevelUp(CurrentLevel);
 		}
 
-		if (AnimatePause == true)
+		if (Tetris.GameInfo.IsRunning == false)
 		{
-			DrawPause(&Animator, DotMatrix);
-			DrawMap(DotMatrix);
-
+			DrawPause();
 			continue;
 		}
 
@@ -196,104 +178,6 @@ void DrawNextBlock()
 
 	RenderNextBlock(&Tetris.GameMap, &renderedNextBlock);
 	SetLED(renderedNextBlock);
-}
-
-void DrawGameOver()
-{
-	int row, col;
-	unsigned char matrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
-	unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
-
-	Sleep(1000);
-}
-
-int MakeNumberMatrix(bool* matrix[DOT_SMALL_FONT_ROW], int number)
-{
-	int digitCount;
-	int colLength;
-	int row, col;
-	int index, pivot;
-
-	digitCount = (number == 0) ? 1 : (int)log10(number) + 1;
-	colLength = digitCount * (DOT_SMALL_FONT_COL + 1);
-
-	for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
-	{
-		matrix[row] = (bool*)malloc(sizeof(bool) * colLength);
-		memset(matrix[row], 0, sizeof(bool) * colLength);
-	}
-
-	for (index = digitCount - 1, pivot = 0; index >= 0; index--, pivot += DOT_SMALL_FONT_COL + 1)
-	{
-		for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
-		{
-			for (col = 0; col < DOT_SMALL_FONT_COL; col++)
-			{
-				matrix[row][pivot + col] = DOT_SMALL_NUMBER_FONT[number / (int)pow(10, index)][row][col];
-			}
-		}
-		number -= number / (int)pow(10, index) * (int)pow(10, index);
-	}
-
-	return colLength;
-}
-
-void DrawFinalScore()
-{
-	const static int ITERATION = 3;
-	int iterator;
-	int pivot;
-	int row, col;
-	int marginRow = 2;
-	bool *scoreNumberMatrix[DOT_SMALL_FONT_ROW];
-	int scoreNumberColLength;
-
-	memset(DotMatrix, 0, DOT_MATRIX_SIZE);
-	scoreNumberColLength = MakeNumberMatrix(scoreNumberMatrix, FinalScore);
-	
-	for (iterator = 0; iterator < ITERATION; iterator++)
-	{
-		for (pivot = -DOT_MATRIX_COL; pivot <= DOT_SCORE_FONT_COL; pivot++)
-		{
-			for (row = 0; row < DOT_SCORE_FONT_ROW; row++)
-			{
-				for (col = 0; col < DOT_MATRIX_COL; col++)
-				{
-					if (pivot + col < 0 || pivot + col >= DOT_SCORE_FONT_COL)
-					{
-						DotMatrix[row + marginRow][col] = 0;
-					}
-					else
-					{
-						DotMatrix[row + marginRow][col] = DOT_SCORE_FONT[row][col + pivot];
-					}
-				}
-			}
-			DrawMap(DotMatrix);
-			Sleep(100);
-		}
-
-		for (pivot = -DOT_MATRIX_COL; pivot <= scoreNumberColLength; pivot++)
-		{
-			for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
-			{
-				for (col = 0; col < DOT_MATRIX_COL; col++)
-				{
-					if (pivot + col < 0 || pivot + col >= scoreNumberColLength)
-					{
-						DotMatrix[row + marginRow][col] = 0;
-					}
-					else
-					{
-						DotMatrix[row + marginRow][col] = scoreNumberMatrix[row][col + pivot];
-					}
-				}
-			}
-			DrawMap(DotMatrix);
-			Sleep(200);
-		}
-		Sleep(1000);
-	}
 }
 
 void UpdateDevice()
@@ -369,5 +253,159 @@ unsigned _stdcall UpdateSwitchInput(void* arg)
 
 		GetSwitchStatus(switchStatus);
 		HandleInput(&Input, switchStatus);
+	}
+}
+
+void DrawLevelUp(unsigned int level)
+{
+	int row, col;
+	const static int ALPHABET_X = 0;
+	const static int ALPHABET_Y = 0;
+	const static int NUMBER_X = 4;
+	const static int NUMBER_Y = 0;
+
+	for (row = 0; row <= 5; row++)
+	{
+		memset(DotMatrix[row], 0, sizeof(unsigned char) * DOT_MATRIX_COL);
+	}
+
+	for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
+	{
+		for (col = 0; col < DOT_SMALL_FONT_COL; col++)
+		{
+			DotMatrix[row + ALPHABET_Y][col + ALPHABET_X] = DOT_SMALL_ALPHABET_L_FONT[row][col];
+			DotMatrix[row + NUMBER_Y][col + NUMBER_X] = DOT_SMALL_NUMBER_FONT[level][row][col];
+		}
+	}
+
+	PauseTetris(&Tetris);
+	PauseTimer(&GameUpdateTimer);
+	PauseTimer(&InputUpdateTimer);
+
+	DrawMap(DotMatrix);
+	Sleep(1500);
+
+	ResumeTimer(&GameUpdateTimer);
+	ResumeTimer(&InputUpdateTimer);
+	ResumeTetris(&Tetris);
+}
+
+void DrawPause()
+{
+	int row, col;
+	const static int ALPHABET_X = 0;
+	const static int ALPHABET_Y = 0;
+	static bool blinker = false;
+
+	memset(DotMatrix, 0, DOT_MATRIX_SIZE);
+
+	if (IsTimerReady(&BlinkTimer) == true)
+	{
+		blinker = !blinker;
+	}
+
+	if (blinker == false)
+	{
+		memcpy(DotMatrix, DOT_PAUSE_FONT, DOT_MATRIX_SIZE);
+	}
+
+	DrawMap(DotMatrix);
+}
+
+void DrawGameOver()
+{
+	int row, col;
+	unsigned char matrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
+	unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
+
+	Sleep(1000);
+}
+
+int MakeNumberMatrix(bool* matrix[DOT_SMALL_FONT_ROW], int number)
+{
+	int digitCount;
+	int colLength;
+	int row, col;
+	int index, pivot;
+
+	digitCount = (number == 0) ? 1 : (int)log10(number) + 1;
+	colLength = digitCount * (DOT_SMALL_FONT_COL + 1);
+
+	for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
+	{
+		matrix[row] = (bool*)malloc(sizeof(bool) * colLength);
+		memset(matrix[row], 0, sizeof(bool) * colLength);
+	}
+
+	for (index = digitCount - 1, pivot = 0; index >= 0; index--, pivot += DOT_SMALL_FONT_COL + 1)
+	{
+		for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
+		{
+			for (col = 0; col < DOT_SMALL_FONT_COL; col++)
+			{
+				matrix[row][pivot + col] = DOT_SMALL_NUMBER_FONT[number / (int)pow(10, index)][row][col];
+			}
+		}
+		number -= number / (int)pow(10, index) * (int)pow(10, index);
+	}
+
+	return colLength;
+}
+
+void DrawFinalScore(unsigned int finalScore)
+{
+	const static int ITERATION = 3;
+	int iterator;
+	int pivot;
+	int row, col;
+	int marginRow = 2;
+	bool *scoreNumberMatrix[DOT_SMALL_FONT_ROW];
+	int scoreNumberColLength;
+
+	memset(DotMatrix, 0, DOT_MATRIX_SIZE);
+	scoreNumberColLength = MakeNumberMatrix(scoreNumberMatrix, finalScore);
+	
+	for (iterator = 0; iterator < ITERATION; iterator++)
+	{
+		for (pivot = -DOT_MATRIX_COL; pivot <= DOT_SCORE_FONT_COL; pivot++)
+		{
+			for (row = 0; row < DOT_SCORE_FONT_ROW; row++)
+			{
+				for (col = 0; col < DOT_MATRIX_COL; col++)
+				{
+					if (pivot + col < 0 || pivot + col >= DOT_SCORE_FONT_COL)
+					{
+						DotMatrix[row + marginRow][col] = 0;
+					}
+					else
+					{
+						DotMatrix[row + marginRow][col] = DOT_SCORE_FONT[row][col + pivot];
+					}
+				}
+			}
+			DrawMap(DotMatrix);
+			Sleep(100);
+		}
+
+		for (pivot = -DOT_MATRIX_COL; pivot <= scoreNumberColLength; pivot++)
+		{
+			for (row = 0; row < DOT_SMALL_FONT_ROW; row++)
+			{
+				for (col = 0; col < DOT_MATRIX_COL; col++)
+				{
+					if (pivot + col < 0 || pivot + col >= scoreNumberColLength)
+					{
+						DotMatrix[row + marginRow][col] = 0;
+					}
+					else
+					{
+						DotMatrix[row + marginRow][col] = scoreNumberMatrix[row][col + pivot];
+					}
+				}
+			}
+			DrawMap(DotMatrix);
+			Sleep(200);
+		}
+		Sleep(1000);
 	}
 }
