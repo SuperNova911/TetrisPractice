@@ -17,6 +17,7 @@ typedef struct TetrisCore_t
 	TickTimer BlinkTimer;
 	bool WaitForLock;
 	bool RenderCurrentBlock;
+	bool EnableGravity;
 } TetrisCore;
 
 typedef struct TetrisInfo_t

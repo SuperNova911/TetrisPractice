@@ -1,3 +1,4 @@
+#include <getopt.h>
 #include <math.h>
 #include <process.h>
 //#include <pthread.h>
@@ -18,6 +19,7 @@
 #define INPUT_UPDATE_SPEED 1
 #define BLINK_DELAY 500
 #define WALLKICK_ENABLE true
+#define GRAVITY_ENABLE true
 
 void Initialize();
 void SetOptions(int argc, char* argv[]);
@@ -97,7 +99,44 @@ void Initialize()
 
 void SetOptions(int argc, char* argv[])
 {
-	Tetris.GameMap.AllowWallKick = WALLKICK_ENABLE;
+	static struct option gameOption[] =
+	{
+		{ "no_wallkick", 0, 0, 0 },
+		{ "no_gravity", 0, 0, 0 },
+		{ 0, 0, 0, 0 },
+	};
+	int option;
+	int optionIndex;
+	bool wallKickOption = WALLKICK_ENABLE;
+	bool gravityOption = GRAVITY_ENABLE;
+
+	while ((option = getopt_long(argc, argv, "", gameOption, &optionIndex)) != -1)
+	{
+		switch (option)
+		{
+		case 0:
+			if (strcmp(gameOption[index].name, "no_wallkick") == 0)
+			{
+				wallKickOption = false;
+				break;
+			}
+			else if (strcmp(gameOption[index].name, "no_gravity") == 0)
+			{
+				gravityOption = false;
+				break;
+			}
+			printf("SetOptions: Invaild command-line argument, option: '%s'\n",
+				gameOption[index].name);
+			break;
+		default:
+			printf("SetOptions: Invaild command-line argument, option: '%c'\n",
+				option);
+			break;
+		}
+	}
+
+	Tetris.GameMap.AllowWallKick = wallKickOption;
+	Tetris.GameCore.EnableGravity = gravityOption;
 }
 
 void UpdateGame()

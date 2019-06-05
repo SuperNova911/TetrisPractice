@@ -39,6 +39,7 @@ void InitializeTetris(TetrisGame* tetris)
 	InitializeTickTimer(&tetris->GameCore.BlinkTimer, tetris->GameInfo.BlinkDelay);
 	tetris->GameCore.WaitForLock = false;
 	tetris->GameCore.RenderCurrentBlock = true;
+	tetris->GameCore.EnableGravity = true;
 
 	InitializeBlockBag(&tetris->BlockBag);
     PrepareNextBlock(&tetris->GameMap, GetNextBlock(&tetris->BlockBag));
@@ -117,7 +118,10 @@ void UpdateTetris(TetrisGame* tetris)
 		}
 		else
 		{
-			UpdateGravity(tetris);
+			if (tetris->GameCore.EnableGravity == true)
+			{
+				UpdateGravity(tetris);
+			}
 		}
 	}
 	else
