@@ -206,7 +206,7 @@ void HandleUserInput(TetrisGame* tetris)
 		switch (tetris->UserInput.Command)
 		{
 		case Input_MoveUp:
-			ControlBlockMovement(tetris, Move_Up);
+			//ControlBlockMovement(tetris, Move_Up);
 			break;
 		case Input_MoveRight:
 			ControlBlockMovement(tetris, Move_Right);
