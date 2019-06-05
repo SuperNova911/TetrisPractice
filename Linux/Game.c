@@ -48,7 +48,7 @@ unsigned int FinalScore;
 // Input
 InputManager Input;
 TickTimer InputUpdateTimer;
-//pthread_t InputUpdateThread;
+pthread_t InputUpdateThread;
 
 // Device
 unsigned char DotMatrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
@@ -330,9 +330,6 @@ void DrawLevelUp(unsigned int level)
 
 void DrawPause()
 {
-	int row, col;
-	const static int ALPHABET_X = 0;
-	const static int ALPHABET_Y = 0;
 	static bool blinker = false;
 
 	memset(DotMatrix, 0, DOT_MATRIX_SIZE);
@@ -352,9 +349,9 @@ void DrawPause()
 
 void DrawGameOver()
 {
-	int row, col;
-	unsigned char matrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
-	unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
+	//int row, col;
+	//unsigned char matrix[DOT_MATRIX_ROW][DOT_MATRIX_COL];
+	//unsigned char fullCol[DOT_MATRIX_COL] = { 1, 1, 1 ,1 ,1, 1 ,1 };
 
 	usleep(1000000);
 }
